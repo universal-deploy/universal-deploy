@@ -1,5 +1,12 @@
 # @universal-deploy/node
 
+## 0.1.1
+
+### Patch Changes
+
+- 803232d: fix: avoid circular references while importing srvx
+- 803232d: feat: new option to override the importer while resolving virtual:ud:node-entry
+
 ## 0.1.0
 
 ### Minor Changes
