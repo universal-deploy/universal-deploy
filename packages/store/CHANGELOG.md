@@ -1,5 +1,11 @@
 # @universal-deploy/store
 
+## 0.1.1
+
+### Patch Changes
+
+- 5e427e3: fix: smarter entry deduplication
+
 ## 0.1.0
 
 ### Minor Changes
