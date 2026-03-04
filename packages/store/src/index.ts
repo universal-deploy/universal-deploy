@@ -22,9 +22,9 @@ function getTransformer(): EntryTransformer | undefined {
  */
 export function addEntry(entry: EntryMeta) {
   // We silently ignore exact duplicates, as vite config file can be imported multiple times
-  const serializedEntry = JSON.stringify(entry);
+  const serializedEntry = serializeEntry(entry);
   const store = getStore();
-  if (store.entries.some((e) => JSON.stringify(e) === serializedEntry)) {
+  if (store.entries.some((e) => serializeEntry(e) === serializedEntry)) {
     return;
   }
   store.entries.push(entry);
@@ -44,4 +44,12 @@ export function getAllEntries(): readonly EntryMeta[] {
  */
 export function setEntryTransformer(transformer: EntryTransformer) {
   (getStore() as any)[transformerSymbol] = transformer;
+}
+
+function serializeEntry(entry: EntryMeta) {
+  return JSON.stringify({
+    ...entry,
+    route: Array.isArray(entry.route) ? entry.route : [entry.route],
+    method: Array.isArray(entry.method) ? entry.method : entry.method ? [entry.method] : undefined,
+  });
 }
