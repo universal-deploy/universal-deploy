@@ -16,19 +16,19 @@
     "test:types": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "^22.19.3",
-    "tsdown": "^0.20.3",
+    "@types/node": "^22.19.15",
+    "tsdown": "^0.21.1",
     "type-predicate-generator": "^1.0.4",
     "typescript": "^5.9.3",
-    "vite": "^8.0.0-beta.13"
+    "vite": "^8.0.0-beta.18"
   },
   "peerDependencies": {
     "vite": "^8.0.0-beta.13"
   },
   "dependencies": {
-    "@universal-middleware/express": "^0.4.22",
+    "@universal-middleware/express": "^0.4.26",
     "magic-string": "^0.30.21",
-    "rou3": "^0.7.12"
+    "rou3": "^0.8.1"
   },
   "files": [
     "dist/"

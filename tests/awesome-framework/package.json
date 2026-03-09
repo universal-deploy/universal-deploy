@@ -8,15 +8,15 @@
   },
   "dependencies": {
     "@universal-deploy/store": "workspace:^",
-    "@universal-middleware/core": "^0.4.13",
-    "@universal-middleware/express": "^0.4.22",
-    "@universal-middleware/srvx": "^0.1.1"
+    "@universal-middleware/core": "^0.4.17",
+    "@universal-middleware/express": "^0.4.26",
+    "@universal-middleware/srvx": "^0.1.3"
   },
   "devDependencies": {
-    "@types/node": "^22.19.3",
-    "tsdown": "^0.20.3",
+    "@types/node": "^22.19.15",
+    "tsdown": "^0.21.1",
     "typescript": "^5.9.3",
-    "vite": "^8.0.0-beta.13"
+    "vite": "^8.0.0-beta.18"
   },
   "peerDependencies": {
     "@universal-middleware/core": "^0.4.13",

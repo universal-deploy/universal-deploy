@@ -15,10 +15,10 @@
     "@universal-deploy/netlify": "workspace:^",
     "playwright": "^1.57.0",
     "typescript": "^5.9.3",
-    "vite": "^8.0.0-beta.13"
+    "vite": "^8.0.0-beta.18"
   },
   "dependencies": {
-    "@universal-middleware/core": "^0.4.13",
+    "@universal-middleware/core": "^0.4.17",
     "awesome-framework": "0.0.0"
   }
 }

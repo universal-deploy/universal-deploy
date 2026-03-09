@@ -13,7 +13,7 @@
     "@playwright/test": "^1.57.0"
   },
   "devDependencies": {
-    "@types/node": "^22.19.3",
+    "@types/node": "^22.19.15",
     "playwright": "^1.57.0",
     "typescript": "^5.9.3"
   },

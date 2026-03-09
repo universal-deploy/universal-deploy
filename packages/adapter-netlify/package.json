@@ -14,14 +14,14 @@
     "test:types": "tsc --noEmit"
   },
   "dependencies": {
-    "@netlify/vite-plugin": "^2.7.17",
+    "@netlify/vite-plugin": "^2.10.8",
     "@universal-deploy/store": "workspace:^",
-    "rou3": "^0.7.12"
+    "rou3": "^0.8.1"
   },
   "devDependencies": {
-    "tsdown": "^0.20.3",
+    "tsdown": "^0.21.1",
     "typescript": "^5.9.3",
-    "vite": "^8.0.0-beta.13"
+    "vite": "^8.0.0-beta.18"
   },
   "peerDependencies": {
     "vite": "^8.0.0-beta.13"

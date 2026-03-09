@@ -10,16 +10,16 @@
     "test:types": "tsc --noEmit"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.23.0",
+    "@cloudflare/vite-plugin": "^1.26.1",
     "@universal-deploy/e2e": "workspace:",
     "playwright": "^1.57.0",
     "typescript": "^5.9.3",
-    "vite": "^8.0.0-beta.13",
-    "wrangler": "^4.62.0"
+    "vite": "^8.0.0-beta.18",
+    "wrangler": "^4.71.0"
   },
   "dependencies": {
-    "@universal-middleware/core": "^0.4.13",
+    "@universal-middleware/core": "^0.4.17",
     "awesome-framework": "0.0.0",
-    "hono": "^4.11.7"
+    "hono": "^4.12.5"
   }
 }
