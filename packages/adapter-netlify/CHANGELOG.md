@@ -1,5 +1,13 @@
 # @universal-deploy/netlify
 
+## 0.1.1
+
+### Patch Changes
+
+- 00aa5fc: fix: upgrade dependencies
+- Updated dependencies [00aa5fc]
+  - @universal-deploy/store@0.1.4
+
 ## 0.1.0
 
 ### Minor Changes

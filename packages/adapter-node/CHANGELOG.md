@@ -1,5 +1,13 @@
 # @universal-deploy/node
 
+## 0.1.2
+
+### Patch Changes
+
+- 00aa5fc: fix: upgrade dependencies
+- Updated dependencies [00aa5fc]
+  - @universal-deploy/store@0.1.4
+
 ## 0.1.1
 
 ### Patch Changes

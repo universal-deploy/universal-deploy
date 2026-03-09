@@ -1,5 +1,11 @@
 # @universal-deploy/store
 
+## 0.1.4
+
+### Patch Changes
+
+- 00aa5fc: fix: upgrade dependencies
+
 ## 0.1.1
 
 ### Patch Changes
