@@ -72,6 +72,8 @@ Already compatible:
 
 [Call `addEntry`](https://github.com/photon-js/universal-deploy/blob/f1395bc6c0b4854ece54b8ef6bf42b18ed3ffbf6/tests/awesome-framework/src/vite/universalDeployPlugin.ts#L19) at any point, preferably before `configResolved` hooks.
 
+See the [Framework Developer Guide](./docs/framework-developers.md) for more details.
+
 ### Deployment plugin authors
 
 For deployment providers requiring a unique server entry, the easiest way is to [set `rolldownOptions.input` to `catchAllEntry`](https://github.com/photon-js/universal-deploy/blob/50cd8eec4086ca45698d70f79195114628a74658/packages/adapter-netlify/src/plugin.ts#L22). This virtual entry will be resolved by the [`catchAll`](./packages/store/src/vite/catch-all.ts) plugin.
