@@ -103,23 +103,9 @@ This is highly recommended for framework developers as it provides a "zero-confi
 
 The `auto()` plugin includes `devServer()` and `catchAll()`, so you don't need to add them separately.
 
-#### The `devServer` and `catchAll` Plugins
+#### Advanced Plugins
 
-While many frameworks handle their own routing via a custom Vite plugin, `universal-deploy` provides two optional plugins to help with development and some deployment targets.
-
-##### `devServer()`
-
-The `devServer()` plugin adds a development middleware to Vite that intercepts requests during `vite dev`.
-
-By default, most frameworks handle their own routing. However, using `devServer()` provides out-of-the-box routing for any entry registered in the global store. This is particularly useful for **local emulation**: it ensures your development environment behaves exactly like your production environment by supporting features specific to deployment providers that also use `universal-deploy`.
-
-##### `catchAll()`
-
-The `catchAll()` plugin is a utility that creates a virtual module named `virtual:ud:catch-all`. This module acts as a central aggregator for all registered entries in the global store.
-
-It automatically generates a high-performance router using [rou3](https://github.com/h3js/rou3) based on the `route` and `method` metadata you provided during registration. The resulting module exports a `default.fetch(request)` handler that efficiently matches incoming requests and dispatches them to the correct entry point.
-
-This plugin is required when using `devServer()`, but it's also invaluable for deployment providers that only support a single server entry point (such as Netlify Functions or AWS Lambda), as it handles all the routing logic for you out of the box.
+The `auto()` plugin includes `devServer()` and `catchAll()` by default, which is sufficient for most use cases. If you need to use these plugins individually or require more granular control, see the [Plugins documentation](./plugins.md).
 
 ### 3. Development Mode Support
 
