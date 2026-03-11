@@ -23,6 +23,7 @@
     "@universal-deploy/netlify": "workspace:^",
     "@universal-deploy/node": "workspace:^",
     "@universal-deploy/store": "workspace:^",
+    "@universal-deploy/vite": "workspace:^",
     "lucide-react": "^0.554.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",

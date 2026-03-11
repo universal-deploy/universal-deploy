@@ -61,7 +61,7 @@ Packages like `@universal-deploy/netlify` will no longer be required once direct
 
 - **[`@universal-deploy/netlify`](./packages/adapter-netlify)**
 - **[`@universal-deploy/node`](./packages/adapter-node)** (Node.js, Bun, Deno)
-- **[`@universal-deploy/auto`](./packages/adapter-auto)** (Automatic detection)
+- **[`@universal-deploy/vite`](./packages/vite)** (Automatic detection)
 
 Already compatible:
 

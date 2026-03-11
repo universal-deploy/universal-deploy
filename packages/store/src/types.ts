@@ -28,3 +28,7 @@ export interface EntryMeta {
 type HttpMethod = "GET" | "HEAD" | "POST" | "PUT" | "DELETE" | "CONNECT" | "OPTIONS" | "TRACE" | "PATCH";
 
 export type EntryTransformer = (entry: EntryMeta, index: number) => EntryMeta;
+
+export interface Fetchable {
+  fetch: (request: Request) => Response | Promise<Response>;
+}

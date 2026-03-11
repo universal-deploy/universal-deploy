@@ -8,7 +8,9 @@ const commonOptions: TsdownOptions = {
   treeshake: true,
   nodeProtocol: true,
   fixedExtension: false,
-  external: ["virtual:ud:catch-all"],
+  deps: {
+    neverBundle: ["virtual:ud:catch-all"],
+  },
 };
 
 export default defineConfig([

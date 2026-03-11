@@ -33,8 +33,7 @@
   },
   "pnpm": {
     "overrides": {
-      "@types/node": "^22.19.15",
-      "@universal-deploy/store": "workspace:^"
+      "@types/node": "^22.19.15"
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",

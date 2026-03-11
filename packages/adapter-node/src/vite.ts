@@ -144,3 +144,5 @@ export function node(options?: { static?: string | boolean; importer?: string })
     },
   ];
 }
+
+export default node;

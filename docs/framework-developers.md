@@ -58,7 +58,7 @@ addEntry({
 It's recommended to create a Vite plugin for your framework that registers these entries. Use the `config` hook with `order: "pre"` to ensure entries are registered early.
 
 ```ts
-import { auto } from "@universal-deploy/auto/vite";
+import { auto } from "@universal-deploy/vite";
 import { addEntry } from "@universal-deploy/store";
 import type { Plugin } from "vite";
 
@@ -95,7 +95,7 @@ export function myFrameworkPlugin(): Plugin[] {
 
 #### The `auto()` plugin
 
-The `@universal-deploy/auto` package provides a plugin that automatically defaults your framework to a Node.js-compatible server build when no other deployment target is present in the Vite configuration.
+The `@universal-deploy/vite` package provides a plugin that automatically defaults your framework to a Node.js-compatible server build when no other deployment target is present in the Vite configuration.
 
 This is highly recommended for framework developers as it provides a "zero-config" default:
 - If a user adds a deployment plugin (like `vite-plugin-vercel`), the `auto()` plugin will detect it and disable its own Node.js adapter injection.

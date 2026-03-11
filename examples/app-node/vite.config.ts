@@ -1,5 +1,4 @@
-import { node } from "@universal-deploy/node/vite";
-import { hmr, resolver } from "@universal-deploy/store/vite";
+import { hmr, node, resolver } from "@universal-deploy/vite";
 import { awesomeFramework } from "awesome-framework/vite";
 import { defineConfig } from "vite";
 

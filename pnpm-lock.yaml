@@ -6,7 +6,6 @@ settings:
 
 overrides:
   '@types/node': ^22.19.15
-  '@universal-deploy/store': workspace:^
 
 importers:
 
@@ -93,12 +92,12 @@ importers:
       '@universal-deploy/e2e':
         specifier: 'workspace:'
         version: link:../../tests/e2e
-      '@universal-deploy/node':
-        specifier: workspace:^
-        version: link:../../packages/adapter-node
       '@universal-deploy/store':
         specifier: workspace:^
         version: link:../../packages/store
+      '@universal-deploy/vite':
+        specifier: workspace:^
+        version: link:../../packages/vite
       playwright:
         specifier: ^1.57.0
         version: 1.57.0
@@ -169,6 +168,9 @@ importers:
       '@universal-deploy/store':
         specifier: workspace:^
         version: link:../../packages/store
+      '@universal-deploy/vite':
+        specifier: workspace:^
+        version: link:../../packages/vite
       lucide-react:
         specifier: ^0.554.0
         version: 0.554.0(react@19.2.3)
@@ -225,28 +227,6 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0
 
-  packages/adapter-auto:
-    dependencies:
-      '@universal-deploy/node':
-        specifier: workspace:^
-        version: link:../adapter-node
-      '@universal-deploy/store':
-        specifier: workspace:^
-        version: link:../store
-    devDependencies:
-      tsdown:
-        specifier: ^0.20.3
-        version: 0.20.3(typescript@5.9.3)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      vite:
-        specifier: ^8.0.0-beta.13
-        version: 8.0.0-beta.18(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2)
-      vitest:
-        specifier: ^3.0.7
-        version: 3.2.4(@types/node@22.19.15)(jiti@2.6.1)(jsdom@27.3.0)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
-
   packages/adapter-netlify:
     dependencies:
       '@netlify/vite-plugin':
@@ -293,12 +273,6 @@ importers:
 
   packages/store:
     dependencies:
-      '@universal-middleware/express':
-        specifier: ^0.4.26
-        version: 0.4.26(hono@4.12.5)(srvx@0.11.9)
-      magic-string:
-        specifier: ^0.30.21
-        version: 0.30.21
       rou3:
         specifier: ^0.8.1
         version: 0.8.1
@@ -319,6 +293,40 @@ importers:
         specifier: ^8.0.0-beta.18
         version: 8.0.0-beta.18(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2)
 
+  packages/vite:
+    dependencies:
+      '@universal-deploy/node':
+        specifier: workspace:^
+        version: link:../adapter-node
+      '@universal-deploy/store':
+        specifier: workspace:^
+        version: link:../store
+      '@universal-middleware/express':
+        specifier: ^0.4.26
+        version: 0.4.26(hono@4.12.5)(srvx@0.11.9)
+      magic-string:
+        specifier: ^0.30.21
+        version: 0.30.21
+      rou3:
+        specifier: ^0.8.1
+        version: 0.8.1
+    devDependencies:
+      '@types/node':
+        specifier: ^22.19.15
+        version: 22.19.15
+      tsdown:
+        specifier: ^0.20.3
+        version: 0.20.3(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^8.0.0-beta.13
+        version: 8.0.0-beta.18(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2)
+      vitest:
+        specifier: ^3.0.7
+        version: 3.2.4(@types/node@22.19.15)(jiti@2.6.1)(jsdom@27.3.0)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
+
   tests/awesome-framework:
     dependencies:
       '@universal-deploy/store':
@@ -337,6 +345,9 @@ importers:
       '@types/node':
         specifier: ^22.19.15
         version: 22.19.15
+      '@universal-deploy/vite':
+        specifier: workspace:^
+        version: link:../../packages/vite
       tsdown:
         specifier: ^0.21.1
         version: 0.21.1(typescript@5.9.3)
@@ -2563,6 +2574,11 @@ packages:
   '@typescript-eslint/visitor-keys@8.50.0':
     resolution: {integrity: sha512-Xzmnb58+Db78gT/CCj/PVCvK+zxbnsw6F+O1oheYszJbBSdEjVhQi3C/Xttzxgi/GLmpvOggRs1RFpiJ8+c34Q==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@universal-deploy/store@0.1.4':
+    resolution: {integrity: sha512-CnBrQKT239MKjAPusQRpByRk2agnkpF1sXnF4VBvDXP6FzRg5UFxz1CSdtLCcEMiUskBkBDaBw39qZM8L+W8qQ==}
+    peerDependencies:
+      vite: ^8.0.0-beta.13
 
   '@universal-middleware/core@0.4.17':
     resolution: {integrity: sha512-q+/nXW9DQ94RtmlghC57DhwEvjrqxX57EtU40iaM3U+eYTKc+FVnEdlpdrYX8kCAdEU7zVBLBlFgJre+VrXoUg==}
@@ -7767,6 +7783,23 @@ snapshots:
       '@typescript-eslint/types': 8.50.0
       eslint-visitor-keys: 4.2.1
 
+  '@universal-deploy/store@0.1.4(hono@4.12.5)(srvx@0.9.8)(vite@8.0.0-beta.18(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2))':
+    dependencies:
+      '@universal-middleware/express': 0.4.26(hono@4.12.5)(srvx@0.9.8)
+      magic-string: 0.30.21
+      rou3: 0.8.1
+      vite: 8.0.0-beta.18(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2)
+    transitivePeerDependencies:
+      - '@cloudflare/workers-types'
+      - '@hattip/core'
+      - '@types/express'
+      - '@webroute/route'
+      - elysia
+      - fastify
+      - h3
+      - hono
+      - srvx
+
   '@universal-middleware/core@0.4.17(hono@4.12.5)(srvx@0.11.9)':
     dependencies:
       regexparam: 3.0.0
@@ -10575,7 +10608,7 @@ snapshots:
   vite-plugin-vercel@11.0.0-beta.21(hono@4.12.5)(rollup@4.53.5)(srvx@0.9.8)(vite@8.0.0-beta.18(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2)):
     dependencies:
       '@manypkg/find-root': 3.1.0
-      '@universal-deploy/store': link:packages/store
+      '@universal-deploy/store': 0.1.4(hono@4.12.5)(srvx@0.9.8)(vite@8.0.0-beta.18(@types/node@22.19.15)(esbuild@0.27.3)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2))
       '@universal-middleware/core': 0.4.17(hono@4.12.5)(srvx@0.9.8)
       '@universal-middleware/vercel': 0.4.29(hono@4.12.5)(srvx@0.9.8)
       '@vercel/build-utils': 13.2.4

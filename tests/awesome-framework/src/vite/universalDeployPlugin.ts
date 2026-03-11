@@ -1,5 +1,5 @@
 import { addEntry } from "@universal-deploy/store";
-import { catchAll, devServer } from "@universal-deploy/store/vite";
+import universalDeploy from "@universal-deploy/vite";
 import type { Plugin } from "vite";
 import type { Options } from "./types.js";
 
@@ -32,9 +32,10 @@ export function universalDeployPlugin(options?: Options): Plugin[] {
         },
       },
     },
-    // Forwards request to server entries from a vite dev server middleware
-    devServer(),
-    // Required by devServer
-    catchAll(),
+    ...universalDeploy({
+      node: {
+        importer: "awesome-framework",
+      },
+    }),
   ];
 }

@@ -8,13 +8,15 @@ const commonOptions: TsdownOptions = {
   treeshake: true,
   nodeProtocol: true,
   fixedExtension: false,
-  external: ["virtual:awesome-plugin:index-js"],
+  deps: {
+    neverBundle: ["virtual:awesome-plugin:index-js"],
+  },
 };
 
 export default defineConfig([
   {
     ...commonOptions,
-    platform: "neutral",
+    platform: "node",
     entry: {
       vite: "./src/vite/index.ts",
       "entries/api": "./src/entries/api.ts",

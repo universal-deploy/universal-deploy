@@ -5,9 +5,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./vite": "./dist/vite.js",
-    "./utils": "./dist/utils.js"
+    ".": "./dist/index.js"
   },
   "scripts": {
     "dev": "tsdown --watch",
@@ -22,12 +20,8 @@
     "typescript": "^5.9.3",
     "vite": "^8.0.0-beta.18"
   },
-  "peerDependencies": {
-    "vite": "^8.0.0-beta.13"
-  },
+  "peerDependencies": {},
   "dependencies": {
-    "@universal-middleware/express": "^0.4.26",
-    "magic-string": "^0.30.21",
     "rou3": "^0.8.1"
   },
   "files": [

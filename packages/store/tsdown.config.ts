@@ -16,8 +16,6 @@ export default defineConfig([
     platform: "neutral",
     entry: {
       index: "./src/index.ts",
-      vite: "./src/vite/index.ts",
-      utils: "./src/utils.ts",
     },
   },
 ]);

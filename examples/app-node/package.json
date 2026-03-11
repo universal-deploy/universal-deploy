@@ -11,8 +11,8 @@
   },
   "devDependencies": {
     "@universal-deploy/e2e": "workspace:",
-    "@universal-deploy/node": "workspace:^",
     "@universal-deploy/store": "workspace:^",
+    "@universal-deploy/vite": "workspace:^",
     "playwright": "^1.57.0",
     "typescript": "^5.9.3",
     "vite": "^8.0.0-beta.18"
