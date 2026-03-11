@@ -1,6 +1,6 @@
 # Plugins
 
-While `auto()` is the recommended plugin for most frameworks, `universal-deploy` provides several low-level plugins for advanced use cases.
+While `universalDeploy()` is the recommended plugin for most frameworks, `universal-deploy` provides several low-level plugins for advanced use cases.
 
 ## `devServer()`
 

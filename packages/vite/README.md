@@ -26,7 +26,7 @@ export default defineConfig({
 
 ### How it works
 
-The `universalDeploy()` (aliased from `auto()`) plugin detects the presence of other deployment adapters in your Vite configuration. If any of the following plugins are found, it automatically disables its own Node.js adapter injection:
+The `universalDeploy()` plugin detects the presence of other deployment adapters in your Vite configuration. If any of the following plugins are found, it automatically disables its own Node.js adapter injection:
 
 - `vite-plugin-vercel`
 - `@cloudflare/vite-plugin`

@@ -50,7 +50,7 @@ See the [store documentation](./packages/store/README.md) for full API details.
 
 The following Vite plugins help frameworks and deployment providers work with the global entries store.
 
-- **[`auto`](./packages/adapter-auto)**: Automatically defaults to the Node.js adapter if no other supported deployment target is found. Includes `devServer` and `catchAll`.
+- **[`universalDeploy()`](./packages/vite)**: Automatically defaults to the Node.js adapter if no other supported deployment target is found. Includes `devServer` and `catchAll`.
 
 For advanced usage and low-level plugins like `devServer`, `catchAll`, and `compat`, see the [Plugins documentation](./docs/plugins.md).
 
@@ -61,7 +61,6 @@ Packages like `@universal-deploy/netlify` will no longer be required once direct
 
 - **[`@universal-deploy/netlify`](./packages/adapter-netlify)**
 - **[`@universal-deploy/node`](./packages/adapter-node)** (Node.js, Bun, Deno)
-- **[`@universal-deploy/vite`](./packages/vite)** (Automatic detection)
 
 Already compatible:
 

@@ -107,10 +107,6 @@ The `universalDeploy()` plugin includes `devServer()` and `catchAll()`, so you d
 
 The `universalDeploy()` plugin includes `devServer()` and `catchAll()` by default, which is sufficient for most use cases. If you need to use these plugins individually or require more granular control, see the [Plugins documentation](./plugins.md).
 
-### 3. Development Mode Support
-
-By adding `devServer()` and `catchAll()` to your plugin list, `universal-deploy` will automatically handle routing during `vite dev`. Requests matching your registered routes will be forwarded to their respective entry points within the Vite environment.
-
 ## Advanced Usage
 
 ### Virtual Modules
