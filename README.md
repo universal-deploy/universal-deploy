@@ -92,6 +92,16 @@ For deployment providers with support for multiple server entries, [use `getAllE
   - [`examples/app-netlify`](./examples/app-netlify)
   - [`examples/app-cloudflare`](./examples/app-cloudflare)
 
+## See also
+
+- [Netlify's RFC](https://github.com/vitejs/vite/discussions/20907)
+  - [RFC: Mechanism to allow deployment providers to route requests to built environments](https://github.com/vitejs/ecosystem/issues/4)
+  - [Align on Vite's intended scope to allow for framework-agnostic provider plugins](https://github.com/vitejs/ecosystem/issues/3)
+  - [RFC: Expose a server route manifest](https://github.com/vitejs/vite/discussions/21212)
+- Vike's journey (that led us to Universal Deploy)
+  - Introducing Universal Deploy — 🚧
+  - [Introducing Photon](https://vike.dev/blog/photon) *October 28, 2025*
+  - [Introducing `vike-server`](https://vike.dev/blog/vike-server) *March 26, 2025*
 
 ## License
 
