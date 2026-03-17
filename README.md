@@ -2,24 +2,27 @@
 
 *Deploy Vite apps anywhere.*
 
-## Global Overview
+## Overview
 
 The Universal Deploy project enables any Vite app (vanilla Vite, Astro, Vike, TanStack Start, ...) to be deployed anywhere (Netlify, Cloudflare, Vercel, self-hosted, ...), in a zero-config fashion.
 
 Our approach follows [Netlify's RFC](https://github.com/vitejs/vite/discussions/20907): the `@universal-deploy/*` packages provide a flexible toolset of low-level utilities and conventions, enabling integrations that are both flexible and seamless between Vite apps and deployment providers.
 
 > [!NOTE]
-> The `@universal-deploy/*` packages are only used internally by frameworks and deployment providers — users don't see the existence of `@universal-deploy/*`.
+> The `@universal-deploy/*` packages are only used internally by frameworks and deployment providers — users don't see the existence of Universal Deploy.
 
-This repository is a POC that solves the issue point 1 and 3 of [Netlify's RFC](https://github.com/vitejs/vite/discussions/20907), i.e. "Server entry point location" and "Routing metadata". It demonstrates how a deployment target (Netlify, Cloudflare, Node, etc.) can find and use the different server entries defined by a framework (or user) with a minimal API.
+This repository is a POC that solves the issue 1 and 3 of [Netlify's RFC](https://github.com/vitejs/vite/discussions/20907) — "Server entry point location" and "Routing metadata". It demonstrates how a deployment target (Netlify, Cloudflare, Node, etc.) can find and use the different server entries defined by a framework with minimal API.
 
-### High-level Features
+### Goals
 
-- **For Users**: Truly **zero-config** deployment. Most apps just work out-of-the-box with their preferred deployment provider.
-- **For Framework Developers**: A **standardized way** to register server entries and routing metadata, making your framework compatible with all major deployment providers with a single integration.
-- **For Deployment Providers**: **Automatic discovery** and handling of server entries. No more custom logic for every framework; just read from the global store.
-- **Universal Routing**: Uses a common routing format (`rou3`) that is understood by all participants.
-- **Minimal Conventions**: Low-level utilities that are easy to adopt and don't get in the way of framework-specific logic.
+- For **users**: zero-config deployment — **apps work out-of-the-box with their preferred deployment provider**.
+- For **framework maintainers**: standardized way to register server entries and routing metadata, **making the framework compatible with deployment providers with a single integration**.
+- For **deployment providers**: automatic discovery and handling of server entries. **No more custom logic for every framework**; just read from the global store.
+
+> [!NOTE]
+> - **Universal Routing**: Uses a common routing format (`rou3`) that is understood by all participants.
+> - **Minimal Conventions**: Low-level utilities that are easy to adopt and don't get in the way of framework-specific logic.
+
 
 ## For Framework Developers
 
