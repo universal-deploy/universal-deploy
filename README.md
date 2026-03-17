@@ -2,46 +2,31 @@
 
 *Deploy Vite apps anywhere.*
 
-## Goal
+## Global Overview
 
-The goal of the Universal Deploy project is to enable any Vite app (vanilla Vite, Astro, Vike, TanStack, ...) to be deployed anywhere (Netlify, Cloudflare, Vercel, self-hosted, ...), in a zero-config fashion.
-
-### For framework developers
-
-Frameworks can register their server entries and routing information into a global store. This allows deployment providers to automatically discover and handle them. For extensive documentation on how to integrate your framework, see the [docs](./docs/framework-developers.md) folder.
-
-### For deployment providers
-
-Deployment providers simply need to read the registered entries from the store or use the provided catchall entry to handle routing. For implementation examples, see [`adapter-node`](./packages/adapter-node), [`adapter-netlify`](./packages/adapter-netlify), and [`vite-plugin-vercel@11`](https://github.com/magne4000/vite-plugin-vercel).
-
-**Zero-config**
-
-Deployment Vite plugins (`@netlify/vite-plugin`/`@cloudflare/vite-plugin`/`vite-plugin-vercel`/`@edgeone/vite`/...) deeply integrate in a zero-config and seamless fashion.
-In many cases, the user just adds the plugin to their `vite.config.js`. Frameworks can choose to automate this, removing any configuration requirement from the user.
-
-## Approach
+The Universal Deploy project enables any Vite app (vanilla Vite, Astro, Vike, TanStack Start, ...) to be deployed anywhere (Netlify, Cloudflare, Vercel, self-hosted, ...), in a zero-config fashion.
 
 Our approach follows [Netlify's RFC](https://github.com/vitejs/vite/discussions/20907): the `@universal-deploy/*` packages provide a flexible toolset of low-level utilities and conventions, enabling integrations that are both flexible and seamless between Vite apps and deployment providers.
 
 > [!NOTE]
 > The `@universal-deploy/*` packages are only used internally by frameworks and deployment providers — users don't see the existence of `@universal-deploy/*`.
 
-This repository is a POC that solves the issue point 1 and 3 of [Netlify's RFC](https://github.com/vitejs/vite/discussions/20907), i.e. "Server entry point location" and "Routing metadata".
-Mostly, how can a deployment target (Netlify, Cloudflare, Node, etc.) find and use the different server entries defined by a framework (or user)?
+This repository is a POC that solves the issue point 1 and 3 of [Netlify's RFC](https://github.com/vitejs/vite/discussions/20907), i.e. "Server entry point location" and "Routing metadata". It demonstrates how a deployment target (Netlify, Cloudflare, Node, etc.) can find and use the different server entries defined by a framework (or user) with a minimal API.
 
-This POC demonstrates that we can solve this issue with a minimal API.
-
-## Features
+### Features
 
 - **Global Store**: Register server entries ([`@universal-deploy/store`](./packages/store))
 - **Universal Routing**: Using `rou3` format
 - **Minimal conventions**: Can easily be adopted by any Vite-based framework
+- **Zero-config**: Deployment Vite plugins (`@netlify/vite-plugin`/`@cloudflare/vite-plugin`/`vite-plugin-vercel`/`@edgeone/vite`/...) deeply integrate in a zero-config and seamless fashion. Frameworks can also choose to automate this, removing any configuration requirement from the user.
 
-## Core Concepts
+## For Framework Developers
 
-### Store
+Frameworks can register their server entries and routing information into a global store. This allows deployment providers to automatically discover and handle them.
 
-[`@universal-deploy/store`](./packages/store) provides a global registry for server entries with routing:
+### How it works
+
+Use [`@universal-deploy/store`](./packages/store) to register server entries with routing information:
 
 ```js
 import { addEntry } from "@universal-deploy/store";
@@ -56,47 +41,33 @@ addEntry({
 > [!NOTE]
 > `addEntry` isn't a definitive API; a common convention between all actors has yet to be established.
 
-
-See the [store documentation](./packages/store/README.md) for full API details.
-
-### Vite Plugins
-
-The following Vite plugins help frameworks and deployment providers work with the global entries store.
-
-- **[`universalDeploy()`](./packages/vite)**: Automatically defaults to the Node.js adapter if no other supported deployment target is found. Includes `devServer` and `catchAll`.
-
-For advanced usage and low-level plugins like `devServer`, `catchAll`, and `compat`, see the [Plugins documentation](./docs/plugins.md).
-
-### Adapters
-
-Temporary packages that demonstrate how deployment plugins can integrate `@universal-deploy/store`.
-
-> [!NOTE]
-> Packages like `@universal-deploy/netlify` will no longer be required once directly supported by Vite deployment plugins (e.g. `@netlify/vite-plugin`).
-
-- **[`@universal-deploy/netlify`](./packages/adapter-netlify)**
-- **[`@universal-deploy/node`](./packages/adapter-node)** (Node.js, Bun, Deno)
-
-Already compatible:
-
-- **`@cloudflare/vite-plugin`**
-- **[`vite-plugin-vercel@11`](https://github.com/magne4000/vite-plugin-vercel/pull/207)**
-
-## Usage
-### Framework authors
+### Integration
 
 [Call `addEntry`](https://github.com/photon-js/universal-deploy/blob/f1395bc6c0b4854ece54b8ef6bf42b18ed3ffbf6/tests/awesome-framework/src/vite/universalDeployPlugin.ts#L19) at any point, preferably before `configResolved` hooks.
 
-See the [Framework Developer Guide](./docs/framework-developers.md) for more details.
+For extensive documentation on how to integrate your framework, see the [Framework Developer Guide](./docs/framework-developers.md).
 
-### Deployment plugin authors
+## For Deployment Providers
 
-For deployment providers requiring a unique server entry, the easiest way is to [set `rolldownOptions.input` to `catchAllEntry`](https://github.com/photon-js/universal-deploy/blob/50cd8eec4086ca45698d70f79195114628a74658/packages/adapter-netlify/src/plugin.ts#L22). This virtual entry will be resolved by the [`catchAll`](./packages/store/src/vite/catch-all.ts) plugin.
+Deployment providers read from the global store or use the provided catchall entry to handle routing and server entry discovery.
 
-For deployment providers with support for multiple server entries, [use `getAllEntries`](https://github.com/photon-js/universal-deploy/blob/966993932f2dc98bfc0a6f75ae7a6e9d55ab3f2d/packages/store/src/index.ts#L36) in a `post` `configEnvironment` hook and set `rolldownOptions.input`.
+### Implementation
+
+- **For unique server entry**: Set `rolldownOptions.input` to `catchAllEntry`. This virtual entry will be resolved by the [`catchAll`](./packages/store/src/vite/catch-all.ts) plugin.
+- **For multiple server entries**: [Use `getAllEntries`](https://github.com/photon-js/universal-deploy/blob/966993932f2dc98bfc0a6f75ae7a6e9d55ab3f2d/packages/store/src/index.ts#L36) in a `post` `configEnvironment` hook and set `rolldownOptions.input`.
+- **Vite Plugin**: The [`universalDeploy()`](./packages/vite) plugin automatically defaults to the Node.js adapter if no other supported deployment target is found.
+
+### Examples
+
+For implementation examples, see:
+- [`adapter-node`](./packages/adapter-node) (Node.js, Bun, Deno)
+- [`adapter-netlify`](./packages/adapter-netlify)
+- [`vite-plugin-vercel@11`](https://github.com/magne4000/vite-plugin-vercel)
 
 > [!NOTE]
-> [`this.emitFile`](https://rollupjs.org/plugin-development/#this-emitfile) can also be used at later stages to achieve the same result.
+> `@cloudflare/vite-plugin` works OOTB with Universal Deploy.
+
+See the [Plugins documentation](./docs/plugins.md) for more details.
 
 ## Examples
 
