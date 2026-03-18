@@ -13,15 +13,16 @@ Our approach follows [Netlify's RFC](https://github.com/vitejs/vite/discussions/
 
 This repository is a POC that solves the issue 1 and 3 of [Netlify's RFC](https://github.com/vitejs/vite/discussions/20907) — "Server entry point location" and "Routing metadata". It demonstrates how a deployment target (Netlify, Cloudflare, Node, etc.) can find and use the different server entries defined by a framework with minimal API.
 
-### Features
+### Goals
 
 - For **users**: zero-config deployment — apps **work out-of-the-box with the preferred deployment provider**. No third-party package installation required other than the official Vite plugin of the deployment provider.
 - For **framework maintainers**: standardized way to register server entries and routing metadata, making the framework **compatible with deployment providers with a single integration**.
 - For **deployment providers**: automatic discovery and handling of server entries. **No more custom logic for every framework**; just read from the global store.
 
-> [!NOTE]
-> - **Universal Routing**: Uses a common routing format (`rou3`) that is understood by all participants.
-> - **Minimal Conventions**: Low-level utilities that are easy to adopt and don't get in the way of framework-specific logic.
+### Features
+
+- **Universal Routing**: Uses a common routing format (`rou3`) that is understood by all participants.
+- **Minimal Conventions**: Low-level utilities that are easy to adopt and don't get in the way of framework-specific logic.
 
 
 ## For Framework Developers
