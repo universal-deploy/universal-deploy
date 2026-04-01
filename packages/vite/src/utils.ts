@@ -1,3 +1,4 @@
+import type { ServerOptions } from "@universal-deploy/store";
 import type { Plugin } from "vite";
 import { catchAllId } from "./const.js";
 
@@ -16,16 +17,10 @@ export function dependsOn(pluginName: keyof typeof pluginsUsage) {
   } satisfies Partial<Plugin>;
 }
 
-export function assertFetchable(mod: unknown, id: string): Fetchable {
+export function assertFetchable(mod: unknown, id: string): ServerOptions {
   if (!mod || typeof mod !== "object") throw new Error(`Missing default export from ${id}`);
   if ("default" in mod && mod.default) mod = mod.default;
   if (!mod || typeof mod !== "object" || !("fetch" in mod) || typeof mod.fetch !== "function")
     throw new Error(`Default export from ${id} must include a { fetch() } function`);
-  return mod as Fetchable;
-}
-
-// Types
-
-export interface Fetchable {
-  fetch: (request: Request) => Response | Promise<Response>;
+  return mod as ServerOptions;
 }

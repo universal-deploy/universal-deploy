@@ -1,5 +1,4 @@
 declare module "virtual:ud:catch-all" {
-  type FetchHandler = (request: Request) => Response | Promise<Response>;
-  const handler: { fetch: FetchHandler };
+  const handler: import("@universal-deploy/store").ServerOptions;
   export default handler;
 }

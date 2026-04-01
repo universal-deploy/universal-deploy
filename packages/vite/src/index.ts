@@ -1,4 +1,5 @@
 export { node } from "@universal-deploy/node/vite";
+export type { Fetchable, ServerOptions } from "@universal-deploy/store";
 export * from "./const.js";
 export { auto } from "./plugins/auto.js";
 export { catchAll } from "./plugins/catch-all.js";
