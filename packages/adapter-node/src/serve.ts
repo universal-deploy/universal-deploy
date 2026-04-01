@@ -30,17 +30,24 @@ async function startServer() {
 
   const server = serveSrvx({
     ...userServerEntry,
-    gracefulShutdown: Boolean(prod),
+    gracefulShutdown: userServerEntry.gracefulShutdown ?? Boolean(prod),
     middleware: [
+      ...(userServerEntry.middleware ?? []),
       staticDir
         ? (await import("srvx/static")).serveStatic({
             dir: staticDir,
           })
         : undefined,
     ].filter(Boolean) as ServerMiddleware[],
+    manual: true,
   });
 
+  userServerEntry.onCreate?.(server);
+
+  server.serve();
   await server.ready();
+
+  userServerEntry.onReady?.(server);
 }
 
 await startServer();

@@ -1,7 +1,7 @@
 import { catchAllEntry } from "@universal-deploy/store";
 import { createMiddleware } from "@universal-middleware/express";
 import type { Environment, FetchableDevEnvironment, Plugin, RunnableDevEnvironment } from "vite";
-import { assertFetchable, type Fetchable } from "../utils.js";
+import { assertFetchable } from "../utils.js";
 
 // Vite's isRunnableDevEnvironment isn't reliable when multiple Vite versions are installed
 export function isRunnableDevEnvironment(environment: Environment): environment is RunnableDevEnvironment {
@@ -61,7 +61,7 @@ export function devServer({ environment }: { environment?: string } = {}): Plugi
   };
 }
 
-async function envImportFetchable(env: RunnableDevEnvironment, resolvedId: string): Promise<Fetchable> {
+async function envImportFetchable(env: RunnableDevEnvironment, resolvedId: string) {
   const mod = await env.runner.import<unknown>(resolvedId);
   return assertFetchable(mod, resolvedId);
 }

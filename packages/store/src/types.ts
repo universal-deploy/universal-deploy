@@ -1,3 +1,5 @@
+import type { Server, ServerOptions as SrvxServerOptions } from "srvx";
+
 export interface Store {
   entries: EntryMeta[];
 }
@@ -31,4 +33,9 @@ export type EntryTransformer = (entry: EntryMeta, index: number) => EntryMeta;
 
 export interface Fetchable {
   fetch: (request: Request) => Response | Promise<Response>;
+}
+
+export interface ServerOptions extends Omit<SrvxServerOptions, "manual"> {
+  onCreate?: (server: Server) => unknown;
+  onReady?: (server: Server) => unknown;
 }
