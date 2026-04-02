@@ -1,5 +1,11 @@
 # @universal-deploy/vite
 
+## 0.1.2
+
+### Patch Changes
+
+- 379e277: feat: better cloudflare support
+
 ## 0.1.1
 
 ### Patch Changes
