@@ -99,11 +99,11 @@ ${compiledFindRoute};
 ${assertFetchable.toString()}
 
 export default {
-  fetch(request) {
+  fetch(request, ...args) {
     const url = new URL(request.url);
     const key = findRoute(request.method, url.pathname);
     if (!key || !key.data) return;
-    return assertFetchable(__map[key.data]).fetch(request);
+    return assertFetchable(__map[key.data]).fetch(request, ...args);
   }
 }`;
         return code;
