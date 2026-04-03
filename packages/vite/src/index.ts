@@ -7,6 +7,7 @@ export { devServer } from "./plugins/dev-server.js";
 export { hmr } from "./plugins/hmr.js";
 export { isServerEntry, resolver } from "./plugins/resolver.js";
 export { compat } from "./plugins/rollup-entries-compat.js";
+export { resolveTargets, type SupportedTargets } from "./plugins/supported.js";
 
 import { auto as universalDeploy } from "./plugins/auto.js";
 

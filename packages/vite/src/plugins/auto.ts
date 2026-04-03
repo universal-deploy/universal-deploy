@@ -1,6 +1,7 @@
 import { node } from "@universal-deploy/node/vite";
 import type { ConfigEnv, ConfigPluginContext, Plugin, UserConfig } from "vite";
 import { catchAll, devServer } from "../index.js";
+import { noDeploymentTargetFound } from "./supported.js";
 
 type NodePluginOptions = Parameters<typeof node>[0];
 
@@ -53,38 +54,3 @@ function enablePluginIf(condition: EnableCondition, originalPlugin: Plugin): Plu
   return originalPlugin;
 }
 type EnableCondition = (this: ConfigPluginContext, config: UserConfig, env: ConfigEnv) => boolean | Promise<boolean>;
-
-async function noDeploymentTargetFound(thisNodePlugin: Plugin, c: UserConfig) {
-  const plugins = (await asyncFlatten((c.plugins ?? []) as Plugin[])).filter((p): p is Plugin => Boolean(p));
-
-  // vite-plugin-vercel
-  const vitePluginVercel = plugins.some((p) => p.name.match(/^vite-plugin-vercel/));
-  // @cloudflare/vite-plugin
-  const cloudflareVitePlugin = plugins.some((p) => p.name.match(/^vite-plugin-cloudflare/));
-  // @netlify/vite-plugin (via @universal-deploy/netlify)
-  const netlifyVitePlugin = plugins.some((p) => p.name.match(/^ud:netlify/));
-
-  // Check for other instances of ud:node:emit that are NOT this one
-  const otherNodePlugin = plugins.some(
-    (p) =>
-      p.name.startsWith("ud:node:emit") &&
-      // @ts-expect-error
-      p[INSTANCE] !== thisNodePlugin?.[INSTANCE],
-  );
-
-  return !vitePluginVercel && !cloudflareVitePlugin && !netlifyVitePlugin && !otherNodePlugin;
-}
-
-async function asyncFlatten<T>(arr: T[]): Promise<T[]> {
-  const flattened: T[] = [];
-  for (const item of arr) {
-    if (Array.isArray(item)) {
-      flattened.push(...(await asyncFlatten(item)));
-    } else if (item instanceof Promise) {
-      flattened.push(...(await asyncFlatten([await item])));
-    } else if (item) {
-      flattened.push(item);
-    }
-  }
-  return flattened;
-}

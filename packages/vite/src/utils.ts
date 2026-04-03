@@ -24,3 +24,17 @@ export function assertFetchable(mod: unknown, id: string): ServerOptions {
     throw new Error(`Default export from ${id} must include a { fetch() } function`);
   return mod as ServerOptions;
 }
+
+export async function asyncFlatten<T>(arr: T[]): Promise<T[]> {
+  const flattened: T[] = [];
+  for (const item of arr) {
+    if (Array.isArray(item)) {
+      flattened.push(...(await asyncFlatten(item)));
+    } else if (item instanceof Promise) {
+      flattened.push(...(await asyncFlatten([await item])));
+    } else if (item) {
+      flattened.push(item);
+    }
+  }
+  return flattened;
+}
