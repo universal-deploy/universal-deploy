@@ -1,11 +1,10 @@
 import { node } from "@universal-deploy/node/vite";
 import type { ConfigEnv, ConfigPluginContext, Plugin, UserConfig } from "vite";
+import { INSTANCE } from "../const.js";
 import { catchAll, devServer } from "../index.js";
 import { noDeploymentTargetFound } from "./supported.js";
 
 type NodePluginOptions = Parameters<typeof node>[0];
-
-const INSTANCE = Symbol("auto-instance");
 
 /**
  * Automatically enables the node adapter if no other deployment target (Vercel, Cloudflare, Netlify) is detected.

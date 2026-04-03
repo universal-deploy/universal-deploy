@@ -1,4 +1,5 @@
 import type { Plugin, UserConfig } from "vite";
+import { INSTANCE } from "../const.js";
 import { asyncFlatten } from "../utils.js";
 
 export interface SupportedTargets {
