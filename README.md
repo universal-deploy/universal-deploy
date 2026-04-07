@@ -15,9 +15,9 @@ This repository is a POC that solves the issue 1 and 3 of [Netlify's RFC](https:
 
 ### Scope
 
-- For **users**: zero-config deployment — apps **work out-of-the-box with the preferred deployment provider**. No third-party package installation required other than the official Vite plugin of the deployment provider.
-- For **framework maintainers**: standardized way to register server entries and routing metadata, making the framework **compatible with deployment providers with a single integration**.
-- For **deployment providers**: automatic discovery and handling of server entries. **No more custom logic for every framework**; just read from the global store.
+- For **users**: zero-config deployment — apps work out-of-the-box with the preferred deployment provider. No third-party package installation required other than the deployment provider's Vite plugin (`@edgeone/vite`, `@netlify/vite-plugin`, `@cloudflare/vite-plugin`, ...).
+- For **framework maintainers**: standardized way to register server entries and routing metadata, making the framework compatible with many deployment providers with a single integration.
+- For **deployment providers**: automatic discovery and handling of server entries. No more custom logic for every framework; just read from the global store.
 
 ### Features
 
