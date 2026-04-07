@@ -15,9 +15,9 @@ This repository is a POC that solves the issue 1 and 3 of [Netlify's RFC](https:
 
 ### Scope
 
-- **For users**: zero-config deployment — apps work out-of-the-box with the preferred deployment provider. No third-party packages needed beyond the provider's Vite plugin (`@edgeone/vite`, `@netlify/vite-plugin`, `@cloudflare/vite-plugin`, ...).
-- **For framework maintainers**: a standardized way to register server entries and routing metadata, making the framework compatible with multiple deployment providers via a single integration.
-- **For deployment providers**: automatic discovery and handling of server entries — no custom logic per framework; just read from the global store.
+- **For users**: Zero-config deployment — apps work out-of-the-box with the preferred deployment provider. No third-party packages needed beyond the provider's Vite plugin (`@edgeone/vite`, `@netlify/vite-plugin`, `@cloudflare/vite-plugin`, ...).
+- **For framework maintainers**: Standardized way to register server entries and routing metadata, making the framework compatible with multiple deployment providers via a single integration.
+- **For deployment providers**: Automatic discovery and handling of server entries — no custom logic per framework; just read from the global store.
 
 ### Features
 
@@ -54,7 +54,7 @@ For extensive documentation on how to integrate your framework, see the [Framewo
 
 ## For Deployment Providers
 
-Deployment providers read from the global store or use the provided catchall entry to handle routing and server entry discovery.
+Deployment providers read from the global store or use the provided catch-all entry to handle routing and server entry discovery.
 
 ### Implementation
 
@@ -70,7 +70,7 @@ For implementation examples, see:
 - [`vite-plugin-vercel@11`](https://github.com/magne4000/vite-plugin-vercel)
 
 > [!NOTE]
-> `@cloudflare/vite-plugin` works OOTB with Universal Deploy.
+> `@cloudflare/vite-plugin` already works out-of-the-box with Universal Deploy.
 
 See the [Plugins documentation](./docs/plugins.md) for more details.
 
