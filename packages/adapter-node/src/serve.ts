@@ -30,7 +30,7 @@ async function startServer() {
 
   const server = serveSrvx({
     ...userServerEntry,
-    gracefulShutdown: userServerEntry.gracefulShutdown ?? process.env.NODE_ENV === "production",
+    gracefulShutdown: userServerEntry.gracefulShutdown ?? false,
     middleware: [
       ...(userServerEntry.middleware ?? []),
       staticDir
