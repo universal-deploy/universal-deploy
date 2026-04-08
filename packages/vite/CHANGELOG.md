@@ -1,5 +1,11 @@
 # @universal-deploy/vite
 
+## 0.1.5
+
+### Patch Changes
+
+- fcb526f: fix: previous release
+
 ## 0.1.4
 
 ### Patch Changes
