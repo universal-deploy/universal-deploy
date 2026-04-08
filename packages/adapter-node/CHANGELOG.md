@@ -1,5 +1,11 @@
 # @universal-deploy/node
 
+## 0.1.5
+
+### Patch Changes
+
+- cba997f: fix: NODE_ENV was not correctly replaced
+
 ## 0.1.4
 
 ### Patch Changes
