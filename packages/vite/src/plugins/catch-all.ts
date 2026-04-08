@@ -26,8 +26,7 @@ export function catchAll(): Plugin {
         id: [re_catchAll, re_catchAllDefault],
       },
       async handler() {
-        const imports: string[] = [];
-        const routesByKey: string[] = [];
+        const imports = new Map<string, string>();
         const router = createRouter<string>();
 
         let i = 0;
@@ -68,8 +67,7 @@ export function catchAll(): Plugin {
               routes: rou3Paths,
               i,
             });
-            imports.push(`import m${i} from ${JSON.stringify(resolved.id)};`);
-            routesByKey.push(`m${i}`);
+            imports.set(`m${i}`, `() => import(${JSON.stringify(resolved.id)})`);
             rou3Paths.forEach((route) => {
               methods.forEach((method) => {
                 addRoute(router, method, route, `m${i}`);
@@ -88,22 +86,24 @@ export function catchAll(): Plugin {
         const compiledFindRoute = compileRouterToString(router, "findRoute");
 
         //language=js
-        const code = `${imports.join("\n")}
-
+        const code = `
 const __map = {
-  ${routesByKey.map((v) => `"${v}": ${v}`).join(",\n  ")}
+  ${Array.from(imports.entries())
+    .map(([k, v]) => `"${k}": ${v}`)
+    .join(",\n  ")}
 };
 
-${compiledFindRoute};
+${compiledFindRoute}
 
 ${assertFetchable.toString()}
 
 export default {
-  fetch(request, ...args) {
+  async fetch(request, ...args) {
     const url = new URL(request.url);
     const key = findRoute(request.method, url.pathname);
     if (!key || !key.data) return;
-    return assertFetchable(__map[key.data]).fetch(request, ...args);
+    const mod = await __map[key.data]();
+    return assertFetchable(mod).fetch(request, ...args);
   }
 }`;
         return code;
