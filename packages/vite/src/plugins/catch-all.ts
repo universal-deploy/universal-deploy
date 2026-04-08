@@ -67,7 +67,7 @@ export function catchAll(): Plugin {
               routes: rou3Paths,
               i,
             });
-            imports.set(`m${i}`, `() => import(${JSON.stringify(resolved.id)}).then(m => m.default);`);
+            imports.set(`m${i}`, `() => import(${JSON.stringify(resolved.id)})`);
             rou3Paths.forEach((route) => {
               methods.forEach((method) => {
                 addRoute(router, method, route, `m${i}`);
@@ -93,7 +93,7 @@ const __map = {
     .join(",\n  ")}
 };
 
-${compiledFindRoute};
+${compiledFindRoute}
 
 ${assertFetchable.toString()}
 
@@ -102,7 +102,7 @@ export default {
     const url = new URL(request.url);
     const key = findRoute(request.method, url.pathname);
     if (!key || !key.data) return;
-    const mod = await __map[key.data];
+    const mod = await __map[key.data]();
     return assertFetchable(mod).fetch(request, ...args);
   }
 }`;
