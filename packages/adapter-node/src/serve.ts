@@ -12,16 +12,16 @@ function assertFetchable(mod: unknown, id: string): Fetchable {
 
 async function startServer() {
   assertFetchable(userServerEntry, "virtual:ud:catch-all");
-  let { static: staticDir, prod } = userServerEntry as unknown as FetchHandler & {
+  let { static: staticDir } = userServerEntry as unknown as FetchHandler & {
     static?: boolean | string;
-    prod?: boolean;
   };
 
   // @ts-expect-error replaced by node plugin
   if (__UD_STATIC__) staticDir = __UD_STATIC__;
 
   if (!process.env.NODE_ENV) {
-    process.env.NODE_ENV = prod ? "production" : "development";
+    // @ts-expect-error replaced by node plugin
+    process.env.NODE_ENV = __UD_PROD__ ? "production" : "development";
   }
 
   if (staticDir === undefined || staticDir === true) {
@@ -30,7 +30,7 @@ async function startServer() {
 
   const server = serveSrvx({
     ...userServerEntry,
-    gracefulShutdown: userServerEntry.gracefulShutdown ?? Boolean(prod),
+    gracefulShutdown: userServerEntry.gracefulShutdown ?? process.env.NODE_ENV === "production",
     middleware: [
       ...(userServerEntry.middleware ?? []),
       staticDir
