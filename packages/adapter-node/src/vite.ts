@@ -61,20 +61,22 @@ export function node(options?: { static?: string | boolean; importer?: string })
 
       transform: {
         filter: {
-          code: /__UD_STATIC__/,
+          code: [/__UD_STATIC__/, /__UD_PROD__/],
         },
         handler(code) {
           const outDir = findClientOutDir(this.environment);
-          return code.replace(
-            /__UD_STATIC__/g,
-            JSON.stringify(
-              typeof options?.static === "string" || typeof options?.static === "boolean"
-                ? options.static
-                : typeof outDir === "string"
-                  ? outDir
-                  : true,
-            ),
-          );
+          return code
+            .replace(
+              /__UD_STATIC__/g,
+              JSON.stringify(
+                typeof options?.static === "string" || typeof options?.static === "boolean"
+                  ? options.static
+                  : typeof outDir === "string"
+                    ? outDir
+                    : true,
+              ),
+            )
+            .replace(/__UD_PROD__/g, JSON.stringify(true));
         },
       },
     },
