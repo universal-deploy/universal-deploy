@@ -1,11 +1,18 @@
-import { netlify } from "@universal-deploy/netlify/vite";
+import netlify from "@netlify/vite-plugin";
+import netlifyCompat from "@universal-deploy/netlify/vite";
 import { awesomeFramework } from "awesome-framework/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [
-    // re-exports @netlify/vite-plugin, and sets rolldownOptions.input to virtual:ud:catch-all
-    netlify(),
+    // Official Netlify Vite plugin
+    netlify({
+      build: {
+        enabled: true,
+      },
+    }),
+    // Small plugin that sets rolldownOptions.input to virtual:ud:catch-all
+    netlifyCompat(),
     // Minimal SSR framework. Includes devServer and catchAll plugins from @universal-deploy/store
     awesomeFramework({
       additionalEntries: [

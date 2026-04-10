@@ -11,6 +11,7 @@
     "test:types": "tsc --noEmit"
   },
   "devDependencies": {
+    "@netlify/vite-plugin": "^2.11.3",
     "@universal-deploy/e2e": "workspace:",
     "@universal-deploy/netlify": "workspace:^",
     "playwright": "^1.57.0",

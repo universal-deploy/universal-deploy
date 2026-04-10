@@ -14,7 +14,6 @@
     "test:types": "tsc --noEmit"
   },
   "dependencies": {
-    "@netlify/vite-plugin": "^2.10.8",
     "@universal-deploy/store": "workspace:^",
     "rou3": "^0.8.1"
   },

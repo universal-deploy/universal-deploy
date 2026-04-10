@@ -1,10 +1,9 @@
-import createNetlifyPlugin, { type NetlifyPluginOptions } from "@netlify/vite-plugin";
 import { catchAllEntry } from "@universal-deploy/store";
 import type { Plugin } from "vite";
 
 const moduleId = "ud:netlify";
 
-export function netlify(config?: NetlifyPluginOptions): Plugin[] {
+function netlify(): Plugin[] {
   return [
     {
       name: `${moduleId}:apply-store`,
@@ -15,7 +14,7 @@ export function netlify(config?: NetlifyPluginOptions): Plugin[] {
         order: "post",
         handler(name, env) {
           if (env.consumer !== "server" && name !== "ssr") return;
-          const optionName = this.meta.rolldownVersion ? "rolldownOptions" : "rollupOptions";
+          const optionName = this.meta?.rolldownVersion ? "rolldownOptions" : "rollupOptions";
 
           return {
             build: {
@@ -29,13 +28,7 @@ export function netlify(config?: NetlifyPluginOptions): Plugin[] {
         },
       },
     },
-    // Currently (@netlify/vite-plugin@2.7.17), the netlify build plugin reads bundle artifacts and looks for a unique `isEntry` chunk
-    ...createNetlifyPlugin({
-      ...config,
-      build: {
-        enabled: true,
-        ...config?.build,
-      },
-    }),
   ];
 }
+
+export { netlify, netlify as default };
