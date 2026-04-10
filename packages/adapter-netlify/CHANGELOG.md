@@ -1,5 +1,11 @@
 # @universal-deploy/netlify
 
+## 0.2.0
+
+### Minor Changes
+
+- 9a60e82: feat: do not bundle netlify plugin
+
 ## 0.1.2
 
 ### Patch Changes
