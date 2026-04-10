@@ -27,8 +27,7 @@
     "lucide-react": "^0.554.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "tailwindcss": "^4.1.18",
-    "vite-tsconfig-paths": "^5.1.4"
+    "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.26.1",

@@ -4,7 +4,6 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { catchAll, compat } from "@universal-deploy/vite";
 import viteReact from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import viteTsConfigPaths from "vite-tsconfig-paths";
 
 const config = defineConfig({
   plugins: [
@@ -14,13 +13,13 @@ const config = defineConfig({
     compat(),
     // Provides the virtual catch-all entry required by the compat plugin.
     catchAll(),
-    viteTsConfigPaths({
-      projects: ["./tsconfig.json"],
-    }),
     tailwindcss(),
     tanstackStart(),
     viteReact(),
   ],
+  resolve: {
+    tsconfigPaths: true,
+  },
 });
 
 export default config;
