@@ -13,7 +13,7 @@ export default defineConfig({
     }),
     // Small plugin that sets rolldownOptions.input to virtual:ud:catch-all
     netlifyCompat(),
-    // Minimal SSR framework. Includes devServer and catchAll plugins from @universal-deploy/store
+    // Minimal SSR framework. Includes devServer and catchAll plugins from universal-deploy
     awesomeFramework({
       additionalEntries: [
         {

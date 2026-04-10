@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     // Emits dist/index.js
     node(),
-    // Minimal SSR framework. Includes devServer and catchAll plugins from @universal-deploy/store
+    // Minimal SSR framework. Includes devServer and catchAll plugins from universal-deploy
     awesomeFramework({
       additionalEntries: [
         {
