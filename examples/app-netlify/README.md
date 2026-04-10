@@ -8,4 +8,4 @@ Minimal Vite app using [`awesome-framework`](/tests/awesome-framework) deployed 
 
 `awesome-framework` uses `@universal-deploy/store` to [declare its server entries](/tests/awesome-framework/src/vite/universalDeployPlugin.ts).
 
-Deployment to **Netlify** is done through [`@universal-deploy/netlify`](./packages/adapter-netlify) (see [vite.config.ts](./vite.config.ts)).
+Deployment to **Netlify** is done through [`@universal-deploy/netlify`](./packages/adapter-netlify) and [`@netlify/vite-plugin`](https://www.npmjs.com/package/@netlify/vite-plugin) (see [vite.config.ts](./vite.config.ts)).
