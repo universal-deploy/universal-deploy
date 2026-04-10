@@ -67,7 +67,7 @@ Deployment providers read from the global store or use the provided catch-all en
 For implementation examples, see:
 - [`adapter-node`](./packages/adapter-node) (Node.js, Bun, Deno)
 - [`adapter-netlify`](./packages/adapter-netlify)
-- [`vite-plugin-vercel@11`](https://github.com/magne4000/vite-plugin-vercel)
+- [`vite-plugin-vercel`](https://github.com/magne4000/vite-plugin-vercel)
 
 > [!NOTE]
 > `@cloudflare/vite-plugin` already works out-of-the-box with Universal Deploy.

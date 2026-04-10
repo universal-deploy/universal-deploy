@@ -3,7 +3,7 @@ import config from "./vite.common.config";
 
 config.plugins ??= [];
 // Enables building for Vercel (development and deploy builds).
-// vite-plugin-vercel@11 natively supports @universal-deploy/store
+// vite-plugin-vercel natively supports @universal-deploy/store
 config.plugins.push(
   vercel({
     viteEnvNames: {
