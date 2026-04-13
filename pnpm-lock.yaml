@@ -292,6 +292,9 @@ importers:
 
   packages/vite:
     dependencies:
+      '@universal-deploy/netlify':
+        specifier: workspace:^
+        version: link:../adapter-netlify
       '@universal-deploy/node':
         specifier: workspace:^
         version: link:../adapter-node

@@ -14,6 +14,7 @@
     "test:types": "tsc --noEmit"
   },
   "dependencies": {
+    "@universal-deploy/netlify": "workspace:^",
     "@universal-deploy/node": "workspace:^",
     "@universal-deploy/store": "workspace:^",
     "@universal-middleware/express": "^0.4.26",

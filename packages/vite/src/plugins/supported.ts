@@ -5,7 +5,7 @@ import { asyncFlatten } from "../utils.js";
 export type SupportedTarget =
   | "vite-plugin-vercel"
   | "@cloudflare/vite-plugin"
-  | "@universal-deploy/netlify"
+  | "@netlify/vite-plugin"
   | "@universal-deploy/node";
 
 /**
@@ -45,9 +45,9 @@ async function findSupportedDeploymentTargets(thisNodePlugin: Plugin, c: UserCon
   if (plugins.some((p) => p.name.match(/^vite-plugin-cloudflare/))) {
     found.push("@cloudflare/vite-plugin");
   }
-  // @netlify/vite-plugin (via @universal-deploy/netlify)
-  if (plugins.some((p) => p.name.match(/^ud:netlify/))) {
-    found.push("@universal-deploy/netlify");
+  // @netlify/vite-plugin
+  if (plugins.some((p) => p.name.match(/^vite-plugin-netlify/))) {
+    found.push("@netlify/vite-plugin");
   }
 
   // Check for other instances of ud:node:emit that are NOT this one
