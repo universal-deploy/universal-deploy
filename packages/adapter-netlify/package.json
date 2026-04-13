@@ -14,8 +14,7 @@
     "test:types": "tsc --noEmit"
   },
   "dependencies": {
-    "@universal-deploy/store": "workspace:^",
-    "rou3": "^0.8.1"
+    "@universal-deploy/store": "workspace:^"
   },
   "devDependencies": {
     "tsdown": "^0.21.1",
