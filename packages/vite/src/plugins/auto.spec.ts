@@ -6,7 +6,7 @@ import { auto } from "./auto.js";
 // Mock/Stub plugins for other adapters to simulate their presence
 const mockVercelPlugin = () => ({ name: "vite-plugin-vercel" });
 const mockCloudflarePlugin = () => ({ name: "vite-plugin-cloudflare" });
-const mockNetlifyPlugin = () => ({ name: "ud:netlify:" });
+const mockNetlifyPlugin = () => ({ name: "vite-plugin-netlify" });
 
 describe("auto() plugin", () => {
   it("enables node adapter when no other target is present", async () => {
