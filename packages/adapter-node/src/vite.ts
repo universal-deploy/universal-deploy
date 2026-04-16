@@ -38,7 +38,7 @@ export function node(options?: { static?: string | boolean; importer?: string })
             importerResolvedId = importerResolved?.id;
           }
 
-          const resolved = await this.resolve("@universal-deploy/node/serve", importerResolvedId ?? importer);
+          const resolved = await this.resolve(importerResolvedId ?? importer);
           if (!resolved) {
             try {
               // Use node resolution to find a sub dependency
