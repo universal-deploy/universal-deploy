@@ -1,4 +1,5 @@
 import { builtinModules, createRequire } from "node:module";
+import MagicString from "magic-string";
 import {
   type BuildEnvironmentOptions,
   defaultClientConditions,
@@ -65,18 +66,28 @@ export function node(options?: { static?: string | boolean; importer?: string })
         },
         handler(code) {
           const outDir = findClientOutDir(this.environment);
-          return code
-            .replace(
-              /__UD_STATIC__/g,
-              JSON.stringify(
-                typeof options?.static === "string" || typeof options?.static === "boolean"
-                  ? options.static
-                  : typeof outDir === "string"
-                    ? outDir
-                    : true,
-              ),
-            )
-            .replace(/__UD_PROD__/g, JSON.stringify(true));
+
+          const s = new MagicString(code);
+
+          s.replace(
+            /__UD_STATIC__/g,
+            JSON.stringify(
+              typeof options?.static === "string" || typeof options?.static === "boolean"
+                ? options.static
+                : typeof outDir === "string"
+                  ? outDir
+                  : true,
+            ),
+          );
+
+          s.replace(/__UD_PROD__/g, JSON.stringify(true));
+
+          if (s.hasChanged()) {
+            return {
+              code: s.toString(),
+              map: s.generateMap({ hires: true }),
+            };
+          }
         },
       },
     },
