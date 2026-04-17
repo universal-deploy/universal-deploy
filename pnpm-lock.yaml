@@ -248,6 +248,9 @@ importers:
       '@universal-deploy/store':
         specifier: workspace:^
         version: link:../store
+      magic-string:
+        specifier: ^0.30.21
+        version: 0.30.21
       srvx:
         specifier: ^0.11.9
         version: 0.11.9
