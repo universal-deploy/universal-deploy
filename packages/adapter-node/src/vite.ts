@@ -39,19 +39,20 @@ export function node(options?: { static?: string | boolean; importer?: string })
             if (!resolved) {
               throw new Error(`Failed to resolve importer ${options.importer}`);
             }
-          }
-          resolved = await this.resolve("@universal-deploy/node/serve", importer);
-          if (!resolved) {
-            try {
-              // Use node resolution to find a sub dependency
-              const require = createRequire(import.meta.url);
-              const entry = require.resolve("@universal-deploy/node/serve");
-
-              return {
-                id: entry,
-              };
-            } catch {
-              throw new Error(`Cannot find server entry ${JSON.stringify(id)}`);
+          } else {
+            resolved = await this.resolve("@universal-deploy/node/serve", importer);
+            if (!resolved) {
+              try {
+                // Use node resolution to find a sub dependency
+                const require = createRequire(import.meta.url);
+                const entry = require.resolve("@universal-deploy/node/serve");
+  
+                return {
+                  id: entry,
+                };
+              } catch {
+                throw new Error(`Cannot find server entry ${JSON.stringify(id)}`);
+              }
             }
           }
 
