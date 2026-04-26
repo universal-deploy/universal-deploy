@@ -36,6 +36,9 @@ export function node(options?: { static?: string | boolean; importer?: string })
           let resolved;
           if (options?.importer) {
             resolved = await this.resolve(options.importer, importer);
+            if (!resolved) {
+              throw new Error(`Failed to resolve importer ${options.importer}`);
+            }
           }
           if (!resolved) {
             try {
