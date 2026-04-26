@@ -54,6 +54,7 @@ export function node(options?: { static?: string | boolean; importer?: string })
               throw new Error(`Cannot find server entry ${JSON.stringify(id)}`);
             }
           }
+
           return {
             id: resolved.id,
           };
