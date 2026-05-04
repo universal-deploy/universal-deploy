@@ -28,6 +28,7 @@ export function catchAll(): Plugin {
       async handler() {
         const imports = new Map<string, string>();
         const router = createRouter<string>();
+        const eagerModules: { id: string; default: string; export?: boolean }[] = [];
 
         let i = 0;
         const seen = new Map<
@@ -63,6 +64,14 @@ export function catchAll(): Plugin {
               duplicates.add(resolved.id);
             }
           } else {
+            if (rou3Paths.has("/**")) {
+              // Fallback routes (/**) are loaded eagerly and exported from the virtual module
+              eagerModules.push({
+                id: resolved.id,
+                default: "fbRoute",
+                export: true,
+              });
+            }
             seen.set(resolved.id, {
               routes: rou3Paths,
               i,
@@ -85,8 +94,11 @@ export function catchAll(): Plugin {
         // const findRoute=(m, p) => {}
         const compiledFindRoute = compileRouterToString(router, "findRoute");
 
+        const eagerModuleExport = eagerModules.filter((m) => m.export);
+
         //language=js
         const code = `
+${eagerModules.map(({ id, default: defaultExport }) => `import ${defaultExport} from ${JSON.stringify(id)};`).join("\n")}
 const __map = {
   ${Array.from(imports.entries())
     .map(([k, v]) => `"${k}": ${v}`)
@@ -97,7 +109,9 @@ ${compiledFindRoute}
 
 ${assertFetchable.toString()}
 
+${eagerModuleExport.map(({ id }) => `export * from ${JSON.stringify(id)};`).join("\n")}
 export default {
+  ${eagerModuleExport.map(({ default: defaultExport }) => `...${defaultExport},`).join("\n  ")}
   async fetch(request, ...args) {
     const url = new URL(request.url);
     const key = findRoute(request.method, url.pathname);
