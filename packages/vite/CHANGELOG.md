@@ -1,5 +1,11 @@
 # @universal-deploy/vite
 
+## 0.1.8
+
+### Patch Changes
+
+- d07d821: fix: re-export fallback entry
+
 ## 0.1.7
 
 ### Patch Changes
