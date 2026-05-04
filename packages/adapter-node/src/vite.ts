@@ -33,24 +33,26 @@ export function node(options?: { static?: string | boolean; importer?: string })
           id: re_udNode,
         },
         async handler(id, importer) {
-          let importerResolvedId: string | undefined;
+          let resolved;
           if (options?.importer) {
-            const importerResolved = await this.resolve(options.importer);
-            importerResolvedId = importerResolved?.id;
-          }
+            resolved = await this.resolve(options.importer, importer);
+            if (!resolved) {
+              throw new Error(`Failed to resolve importer ${options.importer}`);
+            }
+          } else {
+            resolved = await this.resolve("@universal-deploy/node/serve", importer);
+            if (!resolved) {
+              try {
+                // Use node resolution to find a sub dependency
+                const require = createRequire(import.meta.url);
+                const entry = require.resolve("@universal-deploy/node/serve");
 
-          const resolved = await this.resolve("@universal-deploy/node/serve", importerResolvedId ?? importer);
-          if (!resolved) {
-            try {
-              // Use node resolution to find a sub dependency
-              const require = createRequire(import.meta.url);
-              const entry = require.resolve("@universal-deploy/node/serve");
-
-              return {
-                id: entry,
-              };
-            } catch {
-              throw new Error(`Cannot find server entry ${JSON.stringify(id)}`);
+                return {
+                  id: entry,
+                };
+              } catch {
+                throw new Error(`Cannot find server entry ${JSON.stringify(id)}`);
+              }
             }
           }
 
