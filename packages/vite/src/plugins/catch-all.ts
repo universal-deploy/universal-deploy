@@ -28,6 +28,7 @@ export function catchAll(): Plugin {
       async handler() {
         const imports = new Map<string, string>();
         const router = createRouter<string>();
+        let reExportFallback: string | undefined;
 
         let i = 0;
         const seen = new Map<
@@ -63,6 +64,9 @@ export function catchAll(): Plugin {
               duplicates.add(resolved.id);
             }
           } else {
+            if (rou3Paths.has("/**")) {
+              reExportFallback = resolved.id;
+            }
             seen.set(resolved.id, {
               routes: rou3Paths,
               i,
@@ -87,6 +91,7 @@ export function catchAll(): Plugin {
 
         //language=js
         const code = `
+${reExportFallback ? `import fbRoute from ${JSON.stringify(reExportFallback)};` : ""}
 const __map = {
   ${Array.from(imports.entries())
     .map(([k, v]) => `"${k}": ${v}`)
@@ -97,7 +102,9 @@ ${compiledFindRoute}
 
 ${assertFetchable.toString()}
 
+${reExportFallback ? `export * from ${JSON.stringify(reExportFallback)};` : ""}
 export default {
+  ${reExportFallback ? `...fbRoute,` : ""}
   async fetch(request, ...args) {
     const url = new URL(request.url);
     const key = findRoute(request.method, url.pathname);
