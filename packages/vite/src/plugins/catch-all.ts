@@ -77,12 +77,19 @@ export function catchAll(): Plugin {
             if (!added) {
               duplicates.add(resolved.id);
             }
+            // Promote to eager if this registration introduces /** and the module isn't eager yet
+            if (rou3Paths.has("/**") && !eagerModules.some((m) => m.id === resolved.id)) {
+              const eagerVarName = `__eager_m${i}`;
+              eagerModules.push({ id: resolved.id, default: eagerVarName, export: true });
+              imports.set(`m${i}`, `() => Promise.resolve({ default: ${eagerVarName} })`);
+            }
           } else {
-            if (rou3Paths.has("/**")) {
+            const eagerVarName = rou3Paths.has("/**") ? `__eager_m${i}` : null;
+            if (eagerVarName) {
               // Fallback routes (/**) are loaded eagerly and exported from the virtual module
               eagerModules.push({
                 id: resolved.id,
-                default: "fbRoute",
+                default: eagerVarName,
                 export: true,
               });
             }
@@ -90,8 +97,14 @@ export function catchAll(): Plugin {
               routes: rou3Paths,
               i,
             });
-            imports.set(`m${i}`, `() => import(${JSON.stringify(resolved.id)})`);
             ids.set(`m${i}`, shortenId(resolved.id, root));
+            // Use an eager reference to avoid the static+dynamic import warning from Rollup
+            imports.set(
+              `m${i}`,
+              eagerVarName
+                ? `() => Promise.resolve({ default: ${eagerVarName} })`
+                : `() => import(${JSON.stringify(resolved.id)})`,
+            );
             rou3Paths.forEach((route) => {
               methods.forEach((method) => {
                 addRoute(router, method, route, `m${i}`);
