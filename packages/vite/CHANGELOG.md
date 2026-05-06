@@ -1,5 +1,11 @@
 # @universal-deploy/vite
 
+## 0.1.9
+
+### Patch Changes
+
+- ddc38a3: fix: enhance catchAll plugin with eager module handling for fallback routes
+
 ## 0.1.8
 
 ### Patch Changes
