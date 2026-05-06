@@ -67,4 +67,19 @@ export function enablePluginIf(condition: EnableCondition, originalPlugin: Plugi
 
   return originalPlugin;
 }
+
+export function shortenId(id: string, root: string): string {
+  const normalized = id.replaceAll("\\", "/");
+  const normalizedRoot = root.replaceAll("\\", "/");
+  const nmIdx = normalized.lastIndexOf("/node_modules/");
+  if (nmIdx !== -1) {
+    const [pkg, scope] = normalized.slice(nmIdx + "/node_modules/".length).split("/");
+    if (!pkg) return normalized;
+    return pkg.startsWith("@") && scope ? `${pkg}/${scope}` : pkg;
+  }
+  return normalized.startsWith(normalizedRoot)
+    ? normalized.slice(normalizedRoot.length).replace(/^\//, "")
+    : normalized;
+}
+
 type EnableCondition = (this: ConfigPluginContext, config: UserConfig, env: ConfigEnv) => boolean | Promise<boolean>;
