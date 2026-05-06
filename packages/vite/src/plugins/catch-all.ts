@@ -10,9 +10,22 @@ const re_catchAll = /^virtual:ud:catch-all$/;
 // Always resolves through this plugin. Should NOT be overridden
 const re_catchAllDefault = /^virtual:ud:catch-all\?default$/;
 
+function shortenId(id: string, root: string): string {
+  const nmIdx = id.lastIndexOf("/node_modules/");
+  if (nmIdx !== -1) {
+    const parts = id.slice(nmIdx + "/node_modules/".length).split("/");
+    return parts[0].startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
+  }
+  return id.startsWith(root) ? id.slice(root.length).replace(/^\//, "") : id;
+}
+
 export function catchAll(): Plugin {
+  let root = "";
   return {
     name: catchAllId,
+    configResolved(config) {
+      root = config.root;
+    },
     resolveId: {
       filter: {
         id: [re_catchAll, re_catchAllDefault],
@@ -27,6 +40,7 @@ export function catchAll(): Plugin {
       },
       async handler() {
         const imports = new Map<string, string>();
+        const ids = new Map<string, string>();
         const router = createRouter<string>();
         const eagerModules: { id: string; default: string; export?: boolean }[] = [];
 
@@ -77,6 +91,7 @@ export function catchAll(): Plugin {
               i,
             });
             imports.set(`m${i}`, `() => import(${JSON.stringify(resolved.id)})`);
+            ids.set(`m${i}`, shortenId(resolved.id, root));
             rou3Paths.forEach((route) => {
               methods.forEach((method) => {
                 addRoute(router, method, route, `m${i}`);
@@ -104,6 +119,11 @@ const __map = {
     .map(([k, v]) => `"${k}": ${v}`)
     .join(",\n  ")}
 };
+const __ids = {
+  ${Array.from(ids.entries())
+    .map(([k, v]) => `"${k}": ${JSON.stringify(v)}`)
+    .join(",\n  ")}
+};
 
 ${compiledFindRoute}
 
@@ -117,7 +137,7 @@ export default {
     const key = findRoute(request.method, url.pathname);
     if (!key || !key.data) return;
     const mod = await __map[key.data]();
-    return assertFetchable(mod).fetch(request, ...args);
+    return assertFetchable(mod, __ids[key.data]).fetch(request, ...args);
   }
 }`;
         return code;
