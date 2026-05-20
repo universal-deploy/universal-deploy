@@ -16,6 +16,7 @@ export default defineConfig([
     platform: "node",
     entry: {
       index: "./src/index.ts",
+      target: "./src/plugins/target.ts",
     },
   },
 ]);
