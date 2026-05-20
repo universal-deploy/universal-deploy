@@ -43,3 +43,4 @@ The `universalDeploy()` plugin accepts the following options:
 - `node`: Same options as the `@universal-deploy/node` adapter:
     - `static`: (string | boolean) The directory containing static assets. Defaults to the client output directory.
     - `importer`: (string) The importer to use when resolving the server entry.
+- `entry`: (string) Relative or absolute path to override the default server entry.
