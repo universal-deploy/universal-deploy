@@ -12,6 +12,7 @@
   "scripts": {
     "dev": "tsdown --watch",
     "build": "tsdown",
+    "test": "vitest run",
     "test:types": "tsc --noEmit"
   },
   "dependencies": {
@@ -31,7 +32,8 @@
     "@types/node": "^22.19.15",
     "tsdown": "^0.21.1",
     "typescript": "^5.9.3",
-    "vite": "^8.0.8"
+    "vite": "^8.0.8",
+    "vitest": "^4.0.0"
   },
   "files": [
     "dist/"

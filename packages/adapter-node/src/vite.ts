@@ -1,4 +1,5 @@
 import { builtinModules, createRequire } from "node:module";
+import { isAbsolute, relative, resolve } from "node:path";
 import MagicString from "magic-string";
 import {
   type BuildEnvironmentOptions,
@@ -6,6 +7,7 @@ import {
   defaultExternalConditions,
   defaultServerConditions,
   type Environment,
+  normalizePath,
   type Plugin,
 } from "vite";
 
@@ -18,6 +20,18 @@ const re_udNode = /^virtual:ud:node-entry$/;
 function findClientOutDir(env: Environment) {
   const envs = Object.values(env.getTopLevelConfig().environments);
   return envs.find((e) => e.consumer === "client")?.build.outDir;
+}
+
+/** Compute the value baked into `__UD_STATIC__`. Absolute paths pass through —
+ *  the user owns them. Otherwise we emit a path relative to the server entry so
+ *  the artifact is portable across filesystems. */
+export function resolveStaticHint(env: Environment, configured: string | boolean | undefined): string | false {
+  if (configured === false) return false;
+  if (typeof configured === "string" && isAbsolute(configured)) return normalizePath(configured);
+  const abs = typeof configured === "string" ? resolve(env.config.root, configured) : findClientOutDir(env);
+  if (abs === undefined) return false;
+  // POSIX-style embedded path so a Windows build runs on POSIX too.
+  return normalizePath(relative(env.config.build.outDir, abs)) || ".";
 }
 
 // Creates a server and listens for connections in Node/Deno/Bun
@@ -65,23 +79,9 @@ export function node(options?: { static?: string | boolean; importer?: string })
           code: [/__UD_STATIC__/, /__UD_PROD__/],
         },
         handler(code) {
-          const outDir = findClientOutDir(this.environment);
-
           const s = new MagicString(code);
-
-          s.replace(
-            /__UD_STATIC__/g,
-            JSON.stringify(
-              typeof options?.static === "string" || typeof options?.static === "boolean"
-                ? options.static
-                : typeof outDir === "string"
-                  ? outDir
-                  : true,
-            ),
-          );
-
+          s.replace(/__UD_STATIC__/g, JSON.stringify(resolveStaticHint(this.environment, options?.static)));
           s.replace(/__UD_PROD__/g, JSON.stringify(true));
-
           if (s.hasChanged()) {
             return {
               code: s.toString(),
