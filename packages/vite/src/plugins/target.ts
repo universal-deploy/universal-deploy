@@ -11,7 +11,7 @@ export interface TargetPluginOptions {
 /**
  * A generic target plugin that overrides the server entry with a custom wrapper.
  */
-export function target(options: TargetPluginOptions): Plugin[] {
+export default function target(options: TargetPluginOptions): Plugin[] {
   return [
     {
       name: "ud:target:emit",
