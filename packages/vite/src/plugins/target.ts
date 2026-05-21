@@ -20,7 +20,7 @@ export default function target(options: TargetPluginOptions): Plugin[] {
         order: "post",
         handler() {
           const buildEnvOptions: BuildEnvironmentOptions = {};
-          if (this.meta.rolldownVersion) {
+          if (this.meta?.rolldownVersion) {
             buildEnvOptions.rolldownOptions = {
               input: {
                 index: options.entry,
