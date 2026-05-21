@@ -11,7 +11,7 @@ export default function target(entry: string): Plugin {
       order: "post",
       handler() {
         const buildEnvOptions: BuildEnvironmentOptions = {};
-        if (this.meta.rolldownVersion) {
+        if (this.meta?.rolldownVersion) {
           buildEnvOptions.rolldownOptions = {
             input: {
               index: entry,
