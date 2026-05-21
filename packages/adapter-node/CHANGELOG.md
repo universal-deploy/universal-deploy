@@ -1,5 +1,11 @@
 # @universal-deploy/node
 
+## 0.1.7
+
+### Patch Changes
+
+- 5a6325f: fix(node): resolve static dir at runtime so built artifacts are portable
+
 ## 0.1.6
 
 ### Patch Changes
