@@ -24,7 +24,7 @@ export function auto(options?: { node?: NodePluginOptions; entry?: string }): Pl
       // Disable node() plugin later when Vite's config() hook runs, because noDeploymentTargetFound() requires `config`
       return enablePluginIf((config) => noDeploymentTargetFound(p, config), p);
     }),
-    ...options?.entry ? [target(options.entry)] : [],
+    ...(options?.entry ? [target(options.entry)] : []),
     ...netlifyGlue(),
   ];
 }
