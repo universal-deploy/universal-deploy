@@ -46,9 +46,7 @@ export default function target(entry: string): Plugin {
     transform(code, id) {
       if (resolvedEntry && id === resolvedEntry) {
         if (!code.includes("virtual:ud:")) {
-          this.warn(
-            `The defined UD wrapper "${entry}" does not seem to import any "virtual:ud:" entries.`
-          );
+          this.warn(`The defined UD wrapper "${entry}" does not seem to import any "virtual:ud:" entries.`);
         }
       }
     },

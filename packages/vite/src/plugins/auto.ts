@@ -20,14 +20,14 @@ export function auto(options?: { node?: NodePluginOptions; entry?: string }): Pl
     ...(options?.entry
       ? [target(options.entry)]
       : [
-        // Enable node adapter only if no other deployment target has been found
-        ...node(options?.node).map((p) => {
-          // @ts-expect-error
-          p[INSTANCE] = instance;
-          // Disable node() plugin later when Vite's config() hook runs, because noDeploymentTargetFound() requires `config`
-          return enablePluginIf((config) => noDeploymentTargetFound(p, config), p);
-        }),
-        ...netlifyGlue(),
-      ]),
+          // Enable node adapter only if no other deployment target has been found
+          ...node(options?.node).map((p) => {
+            // @ts-expect-error
+            p[INSTANCE] = instance;
+            // Disable node() plugin later when Vite's config() hook runs, because noDeploymentTargetFound() requires `config`
+            return enablePluginIf((config) => noDeploymentTargetFound(p, config), p);
+          }),
+          ...netlifyGlue(),
+        ]),
   ];
 }
