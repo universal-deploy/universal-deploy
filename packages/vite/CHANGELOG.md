@@ -1,5 +1,11 @@
 # @universal-deploy/vite
 
+## 0.1.10
+
+### Patch Changes
+
+- 421d9ad: feat: add `entry` option for custom server entry
+
 ## 0.1.9
 
 ### Patch Changes
