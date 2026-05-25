@@ -46,7 +46,7 @@ export default function target(entry: string): Plugin {
     transform(code, id) {
       if (resolvedEntry && id === resolvedEntry) {
         if (!code.includes("virtual:ud:")) {
-          this.warn(`{ entry: "${entry}" } is missing "virtual:ud:catch-all" entry.`);
+          this.warn(`{ entry: "${entry}" } is missing "virtual:ud:catch-all" import.`);
         }
       }
     },
