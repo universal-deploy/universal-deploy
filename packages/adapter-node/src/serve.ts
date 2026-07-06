@@ -19,7 +19,7 @@ async function startServer() {
   };
 
   // @ts-expect-error replaced by node plugin
-  if (__UD_STATIC__) staticHint = __UD_STATIC__;
+  if (staticHint === undefined) staticHint = __UD_STATIC__;
 
   if (!process.env.NODE_ENV) {
     // @ts-expect-error replaced by node plugin
