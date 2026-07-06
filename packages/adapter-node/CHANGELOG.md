@@ -1,5 +1,11 @@
 # @universal-deploy/node
 
+## 0.1.8
+
+### Patch Changes
+
+- 2096707: fix: **UD_STATIC** should be the default
+
 ## 0.1.7
 
 ### Patch Changes
