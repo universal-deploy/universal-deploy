@@ -31,16 +31,21 @@ async function startServer() {
   const staticDir =
     typeof staticHint === "string" ? resolve(dirname(fileURLToPath(import.meta.url)), staticHint) : undefined;
 
+  // srvx 0.12 renamed `serveStatic` to `staticMiddleware` (same `{ dir }` signature).
+  // Support both so the built server works against srvx 0.11 and 0.12+ alike. Only one
+  // name exists in the installed srvx's types, hence the cast to a both-optional shape.
+  const staticMod = (await import("srvx/static")) as unknown as {
+    staticMiddleware?: (options: { dir: string }) => ServerMiddleware;
+    serveStatic?: (options: { dir: string }) => ServerMiddleware;
+  };
+  const createStatic = staticMod.staticMiddleware ?? staticMod.serveStatic;
+
   const server = serveSrvx({
     ...userServerEntry,
     gracefulShutdown: userServerEntry.gracefulShutdown ?? false,
     middleware: [
       ...(userServerEntry.middleware ?? []),
-      staticDir
-        ? (await import("srvx/static")).serveStatic({
-            dir: staticDir,
-          })
-        : undefined,
+      staticDir && createStatic ? createStatic({ dir: staticDir }) : undefined,
     ].filter(Boolean) as ServerMiddleware[],
     manual: true,
   });
