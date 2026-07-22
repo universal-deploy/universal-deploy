@@ -1,5 +1,11 @@
 # @universal-deploy/node
 
+## 0.1.9
+
+### Patch Changes
+
+- c95dc6f: fix(node): support srvx's renamed static middleware (works with srvx 0.11 and 0.12)
+
 ## 0.1.8
 
 ### Patch Changes
