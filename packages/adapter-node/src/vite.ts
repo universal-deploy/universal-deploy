@@ -10,6 +10,13 @@ import {
   normalizePath,
   type Plugin,
 } from "vite";
+import {
+  collectRelativeFiles,
+  encodingsMap,
+  type PrecompressOptions,
+  precompressDir,
+  resolvePrecompress,
+} from "./precompress.js";
 
 // @ts-expect-error Bun global
 const isBun = typeof Bun !== "undefined";
@@ -48,7 +55,18 @@ export function resolveStaticHint(env: Environment, configured: string | boolean
 }
 
 // Creates a server and listens for connections in Node/Deno/Bun
-export function node(options?: { static?: string | boolean; importer?: string }): Plugin[] {
+export function node(options?: {
+  static?: string | boolean;
+  importer?: string;
+  /**
+   * Emit `.br`/`.gz` variants of the served static assets at build time and serve
+   * them instead of compressing on every request.
+   *
+   * @default false
+   */
+  precompress?: boolean | PrecompressOptions;
+}): Plugin[] {
+  const precompress = resolvePrecompress(options?.precompress);
   return [
     // Resolves virtual:ud:node-entry to its node runtime id
     {
@@ -89,12 +107,15 @@ export function node(options?: { static?: string | boolean; importer?: string })
 
       transform: {
         filter: {
-          code: [/__UD_STATIC__/, /__UD_PROD__/],
+          code: [/__UD_STATIC__/, /__UD_PROD__/, /__UD_ENCODINGS__/],
         },
         handler(code) {
           const s = new MagicString(code);
           s.replace(/__UD_STATIC__/g, JSON.stringify(resolveStaticHint(this.environment, options?.static)));
           s.replace(/__UD_PROD__/g, JSON.stringify(true));
+          // Derived from the same resolved object that drives emission, so the suffixes
+          // served and the suffixes written cannot disagree.
+          s.replace(/__UD_ENCODINGS__/g, JSON.stringify(precompress ? encodingsMap(precompress) : false));
           if (s.hasChanged()) {
             return {
               code: s.toString(),
@@ -102,6 +123,28 @@ export function node(options?: { static?: string | boolean; importer?: string })
             };
           }
         },
+      },
+    },
+    // Emit precompressed variants beside the static assets, once they are on disk.
+    // `closeBundle` on the client environment is the only hook that sees both the
+    // emitted assets and the `publicDir` copies (Vite copies those in `renderStart`).
+    {
+      name: "ud:node:precompress",
+      apply: "build",
+      // `PartialEnvironment` carries no `consumer` of its own; it lives on its config.
+      applyToEnvironment: (environment) => environment.config.consumer === "client",
+      async closeBundle() {
+        if (!precompress) return;
+        const dir = resolveStaticDir(this.environment, options?.static);
+        if (dir === undefined) return;
+
+        const { publicDir, build } = this.environment.config;
+        // Pass-throughs are re-copied from source every build, so their variants are
+        // the user's: neither emitted nor retired here.
+        const passThrough = build.copyPublicDir && publicDir ? await collectRelativeFiles(publicDir) : undefined;
+
+        const { written } = await precompressDir(dir, precompress, { passThrough });
+        this.environment.logger.info(`precompressed ${written} variants`);
       },
     },
     // Bun and Deno conditions
