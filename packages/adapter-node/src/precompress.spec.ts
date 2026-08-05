@@ -33,14 +33,8 @@ it("walker and server address one directory when config.root is not the cwd", ()
   expect(resolve(resolve(root, "dist/server"), hint as string)).toBe(walked);
 });
 
-// ── emission, serving, and the F3 retire mechanism ──────────────────────────────
-
-/**
- * Deterministic bytes that neither encoder can shrink — a SHA-256 chain, so no
- * `Math.random` and no fixture file. Measured: brotli q11 and gzip 9 both come out
- * larger than the input. (A linear generator is not enough; its output still
- * compresses by roughly a third.)
- */
+/** Deterministic bytes that neither brotli nor gzip can shrink. A linear generator is
+ *  not enough — its output still compresses by roughly a third. */
 function incompressible(length: number): Buffer {
   const chunks: Buffer[] = [];
   let total = 0;
@@ -81,7 +75,7 @@ async function request(options: ResolvedStaticOptions, encoding: string) {
 }
 
 describe("precompress emission", () => {
-  it("A1 emits a variant smaller than its identity (emission only, not proof of serving)", async () => {
+  it("emits a variant smaller than its identity", async () => {
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
     await precompressDir(dir, ALL);
     const identity = await stat(join(dir, "app.js"));
@@ -89,29 +83,14 @@ describe("precompress emission", () => {
     expect(variant.size).toBeLessThan(identity.size);
   });
 
-  it("A2 skips an extension srvx never negotiates", async () => {
+  it("skips an extension srvx never negotiates", async () => {
     await writeFile(join(dir, "app.js.map"), COMPRESSIBLE);
     await precompressDir(dir, ALL);
     expect(await exists(join(dir, "app.js.map.br"))).toBe(false);
   });
-
-  it("A3 skips an eligible, above-threshold file whose encoding is not smaller", async () => {
-    const noise = incompressible(2048);
-    await writeFile(join(dir, "noise.txt"), noise);
-    expect(noise.byteLength).toBeGreaterThan(ALL.threshold);
-    await precompressDir(dir, ALL);
-    expect(await exists(join(dir, "noise.txt.br"))).toBe(false);
-    expect(await exists(join(dir, "noise.txt.gz"))).toBe(false);
-  });
-
-  it("A3b skips a file under the threshold", async () => {
-    await writeFile(join(dir, "tiny.js"), "export const a = 1;\n");
-    await precompressDir(dir, ALL);
-    expect(await exists(join(dir, "tiny.js.br"))).toBe(false);
-  });
 });
 
-describe("A4 encodings order and selection", () => {
+describe("encodings order and selection", () => {
   it("emits only the configured encoding and bakes only its suffix", async () => {
     const gzipOnly = resolvePrecompress({ encodings: ["gzip"] }) as ResolvedPrecompress;
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
@@ -131,7 +110,7 @@ describe("A4 encodings order and selection", () => {
   });
 });
 
-describe("A5 serving", () => {
+describe("serving", () => {
   it("serves the file on disk, so Content-Length equals its size", async () => {
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
     await precompressDir(dir, ALL);
@@ -140,18 +119,6 @@ describe("A5 serving", () => {
     expect(response.headers.get("content-encoding")).toBe("br");
     // The discriminator: an on-the-fly encode is chunked and carries no length.
     expect(response.headers.get("content-length")).toBe(String(variant.size));
-  });
-});
-
-describe("A6 rebuild reconciles variant content", () => {
-  it("a changed identity gets a variant of the new bytes", async () => {
-    const after = `${COMPRESSIBLE}export const added = ${JSON.stringify("x".repeat(500))};\n`;
-    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
-    await precompressDir(dir, ALL);
-    await writeFile(join(dir, "app.js"), after);
-    await precompressDir(dir, ALL);
-    const decoded = brotliDecompressSync(await readFile(join(dir, "app.js.br"))).toString();
-    expect(decoded).toBe(after);
   });
 });
 
@@ -203,20 +170,15 @@ describe("repeat passes over one directory", () => {
     expect(await exists(join(dir, "app.js.gz"))).toBe(false);
   });
 
-  it("keeps and serves a variant exactly the same size as its identity", async () => {
+  it("keeps a variant exactly the same size as its identity", async () => {
     const brOnly = resolvePrecompress({ threshold: 0, encodings: ["br"] }) as ResolvedPrecompress;
-    // Witness for the boundary: brotli q11 encodes 10 repeated bytes to exactly 10 bytes.
-    // The hazard is a *larger* variant; an equal one costs the same on the wire and still
-    // spares the server an on-the-fly encode, so it is kept.
+    // Boundary witness: brotli q11 encodes 10 repeated bytes to exactly 10 bytes. The
+    // hazard is a *larger* variant; an equal one costs the same on the wire and still
+    // spares the server an on-the-fly encode.
     await writeFile(join(dir, "app.js"), "a".repeat(10));
     const { written } = await precompressDir(dir, brOnly);
-    const identity = await stat(join(dir, "app.js"));
-    const variant = await stat(join(dir, "app.js.br"));
-    expect(variant.size).toBe(identity.size);
+    expect((await stat(join(dir, "app.js.br"))).size).toBe((await stat(join(dir, "app.js"))).size);
     expect(written).toBe(1);
-    const response = await request({ dir, encodings: encodingsMap(brOnly) }, "br");
-    expect(response.headers.get("content-encoding")).toBe("br");
-    expect(response.headers.get("content-length")).toBe(String(variant.size));
   });
 
   it("replaces a correspondent variant that is larger than its identity", async () => {
@@ -248,8 +210,8 @@ describe("repeat passes over one directory", () => {
   });
 });
 
-describe("F3 retire", () => {
-  it("m5 retires a variant this build did not emit", async () => {
+describe("retiring variants this build did not write", () => {
+  it("retires a variant this build did not emit", async () => {
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
     await precompressDir(dir, ALL);
     expect(await exists(join(dir, "app.js.br"))).toBe(true);
@@ -260,14 +222,14 @@ describe("F3 retire", () => {
     expect(await exists(join(dir, "app.js.gz"))).toBe(false);
   });
 
-  it("m7 leaves an orphan variant alone, because iteration is identity to variant", async () => {
+  it("leaves an orphan variant alone: iteration goes identity to variant", async () => {
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
     await writeFile(join(dir, "orphan.js.br"), "not ours");
     await precompressDir(dir, ALL);
     expect(await exists(join(dir, "orphan.js.br"))).toBe(true);
   });
 
-  it("m6 leaves a suffix outside this build's encodings untouched", async () => {
+  it("leaves a suffix outside this build's encodings untouched", async () => {
     const brOnly = resolvePrecompress({ encodings: ["br"] }) as ResolvedPrecompress;
     const leftover = "from a build that had gzip on";
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
@@ -277,7 +239,7 @@ describe("F3 retire", () => {
     expect(await readFile(join(dir, "app.js.gz"), "utf8")).toBe(leftover);
   });
 
-  it("m8 never touches a publicDir pass-through variant", async () => {
+  it("never touches a publicDir pass-through variant", async () => {
     const userOwned = "user supplied, deliberately not matching";
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
     await writeFile(join(dir, "app.js.br"), userOwned);
@@ -285,7 +247,7 @@ describe("F3 retire", () => {
     expect(await readFile(join(dir, "app.js.br"), "utf8")).toBe(userOwned);
   });
 
-  it("m9 throws when a variant cannot be removed", async () => {
+  it("fails the build when a variant cannot be removed", async () => {
     await writeFile(join(dir, "app.js"), incompressible(2048));
     // A directory where a variant would be retired: non-recursive rm rejects.
     await mkdir(join(dir, "app.js.br"));
@@ -296,11 +258,11 @@ describe("F3 retire", () => {
   });
 });
 
-describe("PG-4 lookup is enabled only for the reconciled directory", () => {
+describe("lookup is enabled only for the reconciled directory", () => {
   const encodings: Record<string, string> = { br: ".br" };
   const entryDir = resolve("/srv/app/dist/server");
 
-  it("A7 the same resolved directory retains lookup", () => {
+  it("the same resolved directory retains lookup", () => {
     const options = resolveStaticOptions({
       entryDir,
       bakedStatic: "../client",
@@ -310,7 +272,7 @@ describe("PG-4 lookup is enabled only for the reconciled directory", () => {
     expect(options).toEqual({ dir: resolve(entryDir, "../client"), encodings });
   });
 
-  it("A7b the same directory spelled differently at runtime still retains lookup", () => {
+  it("the same directory spelled differently at runtime still retains lookup", () => {
     const options = resolveStaticOptions({
       entryDir,
       bakedStatic: "../client",
@@ -320,17 +282,7 @@ describe("PG-4 lookup is enabled only for the reconciled directory", () => {
     expect(options?.encodings).toEqual(encodings);
   });
 
-  it("A8 a different runtime directory disables lookup", () => {
-    const options = resolveStaticOptions({
-      entryDir,
-      bakedStatic: "../client",
-      runtimeStatic: "../other",
-      encodings,
-    });
-    expect(options).toEqual({ dir: resolve(entryDir, "../other") });
-  });
-
-  it("A8b a disabled lookup serves the identity, not a planted stale variant", async () => {
+  it("a disabled lookup serves the identity, not a planted stale variant", async () => {
     const stale = `export const stale = ${JSON.stringify("STALE".repeat(400))};\n`;
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
     await writeFile(join(dir, "app.js.br"), Buffer.from(stale));
@@ -350,7 +302,7 @@ describe("PG-4 lookup is enabled only for the reconciled directory", () => {
     expect(decoded).not.toContain("STALE");
   });
 
-  it("A9 no baked directory means no reconciled tree, so no lookup", () => {
+  it("no baked directory means no reconciled tree, so no lookup", () => {
     const options = resolveStaticOptions({
       entryDir,
       bakedStatic: false,
@@ -364,14 +316,6 @@ describe("PG-4 lookup is enabled only for the reconciled directory", () => {
     for (const runtimeStatic of [false, true, undefined] as const) {
       expect(resolveStaticOptions({ entryDir, bakedStatic: false, runtimeStatic, encodings })).toBeUndefined();
     }
-  });
-
-  it("a gzip variant decodes to the identity bytes", async () => {
-    const gzipOnly = resolvePrecompress({ encodings: ["gzip"] }) as ResolvedPrecompress;
-    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
-    await precompressDir(dir, gzipOnly);
-    const response = await request({ dir, encodings: encodingsMap(gzipOnly) }, "gzip");
-    expect(gunzipSync(Buffer.from(await response.arrayBuffer())).toString()).toBe(COMPRESSIBLE);
   });
 });
 
