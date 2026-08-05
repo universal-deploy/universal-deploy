@@ -132,14 +132,20 @@ describe("repeat passes over one directory", () => {
   it("a second pass does no work — emission runs once per environment", async () => {
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
     const first = await precompressDir(dir, ALL);
-    // Backdate the variant to a sentinel far outside timer resolution: a rewrite would
-    // replace it with "now", so its survival is unambiguous evidence of no rewrite.
+    // Backdate the variant far outside timer resolution, then read back what the filesystem
+    // actually stored — comparing that to a clock reading would assert a conversion, not the
+    // property. A rewrite replaces it with "now", a minute away from any granularity.
+    const fresh = (await stat(join(dir, "app.js.br"))).mtimeMs;
     const sentinel = new Date(Date.now() - 60_000);
     await utimes(join(dir, "app.js.br"), sentinel, sentinel);
+    const backdated = (await stat(join(dir, "app.js.br"))).mtimeMs;
+    // The margin everything below rests on. Had `utimes` not taken, `backdated` would be
+    // the first pass's own mtime and a rewrite inside granularity would compare equal.
+    expect(fresh - backdated).toBeGreaterThan(30_000);
     const second = await precompressDir(dir, ALL);
     expect(first.written).toBe(2);
     expect(second.written).toBe(0);
-    expect((await stat(join(dir, "app.js.br"))).mtimeMs).toBe(sentinel.getTime());
+    expect((await stat(join(dir, "app.js.br"))).mtimeMs).toBe(backdated);
   });
 
   it("a file written between passes is still covered", async () => {
