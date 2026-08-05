@@ -60,11 +60,17 @@ afterEach(async () => {
   await rm(dir, { recursive: true, force: true });
 });
 
-const exists = (path: string) =>
-  stat(path).then(
-    () => true,
-    () => false,
-  );
+/** Absence, and only absence. A permission or I/O error would otherwise read as "not
+ *  there" and let a negative assertion pass without the file being gone. */
+const exists = async (path: string) => {
+  try {
+    await stat(path);
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+    throw error;
+  }
+};
 
 async function request(options: ResolvedStaticOptions, encoding: string) {
   const middleware = staticMiddleware(options);
@@ -126,12 +132,14 @@ describe("repeat passes over one directory", () => {
   it("a second pass does no work — emission runs once per environment", async () => {
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
     const first = await precompressDir(dir, ALL);
-    const before = (await stat(join(dir, "app.js.br"))).mtimeMs;
+    // Backdate the variant to a sentinel far outside timer resolution: a rewrite would
+    // replace it with "now", so its survival is unambiguous evidence of no rewrite.
+    const sentinel = new Date(Date.now() - 60_000);
+    await utimes(join(dir, "app.js.br"), sentinel, sentinel);
     const second = await precompressDir(dir, ALL);
     expect(first.written).toBe(2);
     expect(second.written).toBe(0);
-    // Not merely "reported nothing": the file was not rewritten either.
-    expect((await stat(join(dir, "app.js.br"))).mtimeMs).toBe(before);
+    expect((await stat(join(dir, "app.js.br"))).mtimeMs).toBe(sentinel.getTime());
   });
 
   it("a file written between passes is still covered", async () => {
