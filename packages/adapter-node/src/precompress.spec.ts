@@ -8,7 +8,7 @@ import type { Environment } from "vite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { encodingsMap, precompressDir, type ResolvedPrecompress, resolvePrecompress } from "./precompress.js";
 import { type ResolvedStaticOptions, resolveStaticOptions } from "./static-options.js";
-import { resolveStaticDir, resolveStaticHint } from "./vite.js";
+import { node, resolveStaticDir, resolveStaticHint } from "./vite.js";
 
 /**
  * Vite 8 leaves `build.outDir` relative to `config.root`, so a resolver that anchors
@@ -324,6 +324,52 @@ describe("lookup is enabled only for the reconciled directory", () => {
     for (const runtimeStatic of [false, true, undefined] as const) {
       expect(resolveStaticOptions({ entryDir, bakedStatic: false, runtimeStatic, encodings })).toBeUndefined();
     }
+  });
+});
+
+describe("the emission pass sees everything the build wrote", () => {
+  interface PrecompressPlugin {
+    applyToEnvironment?: unknown;
+    closeBundle: { order?: string; handler: (this: unknown) => Promise<void> };
+  }
+
+  function plugin(): PrecompressPlugin {
+    const found = node({ precompress: true }).find((p) => p.name === "ud:node:precompress");
+    if (!found) throw new Error("no ud:node:precompress plugin");
+    return found as unknown as PrecompressPlugin;
+  }
+
+  /** What Vite binds as `this` for one environment's `closeBundle` — only the parts the
+   *  handler reads. `served` is both the root and the client environment's outDir, so the
+   *  resolver lands on it. */
+  function dispatch(served: string) {
+    return {
+      environment: {
+        name: "ssr",
+        config: { root: served, publicDir: false, build: { outDir: ".", copyPublicDir: false } },
+        getTopLevelConfig: () => ({ environments: { client: { consumer: "client", build: { outDir: "." } } } }),
+        logger: { info: () => {} },
+      },
+    };
+  }
+
+  it("runs after the default-order closeBundle hooks, so their files are in the walk", () => {
+    // Hook-local, and this plugin owns one hook — `enforce` would scope the same property
+    // plugin-wide, which is broader than the property needs.
+    expect(plugin().closeBundle.order).toBe("post");
+  });
+
+  it("precompresses the served directory during the pass that is not the client's", async () => {
+    await writeFile(join(dir, "prerendered.html"), COMPRESSIBLE);
+    await plugin().closeBundle.handler.call(dispatch(dir));
+    // vike writes pre-rendered HTML from the ssr environment. Nothing else walks after it.
+    expect(await exists(join(dir, "prerendered.html.br"))).toBe(true);
+  });
+
+  it("declares no applyToEnvironment, so Vite dispatches it to all of them", () => {
+    // Vite's only per-plugin environment filter. The assertion above cannot see it:
+    // calling a handler directly bypasses the dispatch that consults it.
+    expect(plugin().applyToEnvironment).toBeUndefined();
   });
 });
 

@@ -135,21 +135,30 @@ export function node(options?: {
     {
       name: "ud:node:precompress",
       apply: "build",
-      async closeBundle() {
-        if (!precompress) return;
-        // The client's directory in every pass, including the ssr one — the walk targets
-        // what is served, not what the current environment emitted.
-        const dir = resolveStaticDir(this.environment, options?.static);
-        if (dir === undefined) return;
+      // No `applyToEnvironment`: emission is not scoped to one environment. Excluding any
+      // environment would drop the files it alone writes — vike pre-renders HTML inside the
+      // ssr environment — and nothing later would ever look at them.
+      closeBundle: {
+        // Runs after the default-order `closeBundle` hooks, so files they write are in the
+        // walk. (`sequential` adds nothing: rolldown runs every hook sequentially already,
+        // and deprecates the option.)
+        order: "post",
+        async handler() {
+          if (!precompress) return;
+          // The client's directory in every pass, including the ssr one — the walk targets
+          // what is served, not what the current environment emitted.
+          const dir = resolveStaticDir(this.environment, options?.static);
+          if (dir === undefined) return;
 
-        const { publicDir, build } = this.environment.config;
-        // Pass-throughs are re-copied from source every build, so their variants are
-        // the user's: neither emitted nor retired here.
-        const passThrough = build.copyPublicDir && publicDir ? await collectRelativeFiles(publicDir) : undefined;
+          const { publicDir, build } = this.environment.config;
+          // Pass-throughs are re-copied from source every build, so their variants are
+          // the user's: neither emitted nor retired here.
+          const passThrough = build.copyPublicDir && publicDir ? await collectRelativeFiles(publicDir) : undefined;
 
-        const { written } = await precompressDir(dir, precompress, { passThrough });
-        // A later environment's pass usually has nothing left to do; stay quiet then.
-        if (written > 0) this.environment.logger.info(`precompressed ${written} variants`);
+          const { written } = await precompressDir(dir, precompress, { passThrough });
+          // A later environment's pass usually has nothing left to do; stay quiet then.
+          if (written > 0) this.environment.logger.info(`precompressed ${written} variants`);
+        },
       },
     },
     // Bun and Deno conditions
