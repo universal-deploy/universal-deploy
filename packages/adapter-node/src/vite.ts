@@ -126,13 +126,13 @@ export function node(options?: {
       },
     },
     // Emit precompressed variants beside the static assets, once they are on disk.
-    // `closeBundle` on the client environment is the only hook that sees both the
-    // emitted assets and the `publicDir` copies (Vite copies those in `renderStart`).
+    // Runs at EVERY environment's `closeBundle`, not just the client's: a framework may
+    // write more servable files from a later environment — vike pre-renders HTML inside
+    // the ssr environment's `writeBundle` — and those would otherwise never be seen.
+    // Repeat passes are near-free; `precompressDir` skips what is already current.
     {
       name: "ud:node:precompress",
       apply: "build",
-      // `PartialEnvironment` carries no `consumer` of its own; it lives on its config.
-      applyToEnvironment: (environment) => environment.config.consumer === "client",
       async closeBundle() {
         if (!precompress) return;
         const dir = resolveStaticDir(this.environment, options?.static);
@@ -144,7 +144,8 @@ export function node(options?: {
         const passThrough = build.copyPublicDir && publicDir ? await collectRelativeFiles(publicDir) : undefined;
 
         const { written } = await precompressDir(dir, precompress, { passThrough });
-        this.environment.logger.info(`precompressed ${written} variants`);
+        // A later environment's pass usually has nothing left to do; stay quiet then.
+        if (written > 0) this.environment.logger.info(`precompressed ${written} variants`);
       },
     },
     // Bun and Deno conditions

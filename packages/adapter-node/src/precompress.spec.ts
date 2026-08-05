@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { brotliDecompressSync, gunzipSync } from "node:zlib";
@@ -152,6 +152,38 @@ describe("A6 rebuild reconciles variant content", () => {
     await precompressDir(dir, ALL);
     const decoded = brotliDecompressSync(await readFile(join(dir, "app.js.br"))).toString();
     expect(decoded).toBe(after);
+  });
+});
+
+describe("repeat passes over one directory", () => {
+  it("a second pass does no work — emission runs once per environment", async () => {
+    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
+    const first = await precompressDir(dir, ALL);
+    const before = (await stat(join(dir, "app.js.br"))).mtimeMs;
+    const second = await precompressDir(dir, ALL);
+    expect(first.written).toBe(2);
+    expect(second.written).toBe(0);
+    // Not merely "reported nothing": the file was not rewritten either.
+    expect((await stat(join(dir, "app.js.br"))).mtimeMs).toBe(before);
+  });
+
+  it("a file written between passes is still covered", async () => {
+    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
+    await precompressDir(dir, ALL);
+    // What a framework's pre-render does: more servable files appear after the first pass.
+    await writeFile(join(dir, "page.html"), COMPRESSIBLE);
+    const second = await precompressDir(dir, ALL);
+    expect(second.written).toBe(2);
+    expect(await exists(join(dir, "page.html.br"))).toBe(true);
+  });
+
+  it("the reported count matches the variants actually written", async () => {
+    for (let i = 0; i < 10; i++) {
+      await writeFile(join(dir, `f${i}.js`), `${COMPRESSIBLE}// ${i}\n`);
+    }
+    const { written } = await precompressDir(dir, ALL);
+    const names = await readdir(dir);
+    expect(written).toBe(names.filter((n) => n.endsWith(".br") || n.endsWith(".gz")).length);
   });
 });
 

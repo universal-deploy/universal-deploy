@@ -26,7 +26,7 @@ and only when the encoded form is smaller. On-the-fly compression stays on for e
   is still served; keeping it in step with its source is up to you.
 - **Runtime `static` wins.** Variant lookup is enabled only for the directory this build
   precompressed; a different resolved directory falls back to on-the-fly compression.
-- **Not covered:** pages written by a framework's pre-render step, which runs after the build
-  hooks; and assets built without `precompress` behind a server built with it — build both
-  together. Leftovers from a disabled option or a dropped encoding are never probed, so they
-  are inert.
+- **Not covered:** pages produced by a separate pre-render run (`$ vike prerender`), which
+  starts no Vite build; and assets built without `precompress` behind a server built with it —
+  build both together. Leftovers from a disabled option or a dropped encoding are never probed,
+  so they are inert.

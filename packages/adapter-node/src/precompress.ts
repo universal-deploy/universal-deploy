@@ -1,3 +1,4 @@
+import type { Stats } from "node:fs";
 import { readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { extname, join, posix, sep } from "node:path";
 import { promisify } from "node:util";
@@ -124,6 +125,24 @@ export interface PrecompressContext {
   passThrough?: ReadonlySet<string>;
 }
 
+/**
+ * Whether every variant already post-dates its identity, in which case some earlier pass
+ * — this build's or a previous one's — already reconciled this file.
+ *
+ * This is **not** the forbidden skip-if-a-variant-exists: existence says nothing about
+ * whether the variant matches the identity beside it, which is how a stale variant from a
+ * previous build survives a content change. A rewritten identity always carries a newer
+ * mtime than the variant made from its previous contents, so it is never skipped here. A
+ * tie, or a missing variant, falls through to doing the work.
+ */
+async function isCurrent(filePath: string, identity: Stats, resolved: ResolvedPrecompress): Promise<boolean> {
+  for (const encoding of resolved.encodings) {
+    const variant = await stat(filePath + VARIANT_EXT[encoding]).catch(() => null);
+    if (!variant || variant.mtimeMs <= identity.mtimeMs) return false;
+  }
+  return true;
+}
+
 async function processFile(
   filePath: string,
   relPath: string,
@@ -132,6 +151,13 @@ async function processFile(
 ): Promise<number> {
   if (!NEGOTIABLE.has(extname(filePath).toLowerCase())) return 0;
   if (context.passThrough?.has(relPath)) return 0;
+
+  const identity = await stat(filePath).catch(() => null);
+  if (!identity) return 0;
+  // Emission runs once per environment, so a multi-environment build walks the same
+  // directory more than once. Without this, every pass after the first would re-encode
+  // everything the earlier ones already did.
+  if (await isCurrent(filePath, identity, resolved)) return 0;
 
   const source = await readFile(filePath);
   const eligible = source.length >= resolved.threshold;
@@ -180,7 +206,8 @@ export async function precompressDir(
     for (let i = next++; i < files.length; i = next++) {
       const filePath = files[i] as string;
       const relPath = filePath.slice(prefix).split(sep).join(posix.sep);
-      written += await processFile(filePath, relPath, resolved, context);
+      const count = await processFile(filePath, relPath, resolved, context);
+      written += count;
     }
   };
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, files.length) }, worker));
