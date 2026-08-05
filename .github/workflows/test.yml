@@ -47,7 +47,7 @@ jobs:
       - name: Set Node.js version to 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24.x
       - run: pnpm install
       - run: pnpm run build
       - run: pnpm run format:check
