@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readdir, readFile, rm, stat, utimes, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { brotliDecompressSync, gunzipSync } from "node:zlib";
+import { brotliCompressSync, brotliDecompressSync, gunzipSync } from "node:zlib";
 import { staticMiddleware } from "srvx/static";
 import type { Environment } from "vite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -191,6 +191,26 @@ describe("repeat passes over one directory", () => {
     await precompressDir(dir, ALL);
     expect(brotliDecompressSync(await readFile(join(dir, "app.js.br"))).toString()).toBe(changed);
     expect(gunzipSync(await readFile(join(dir, "app.js.gz"))).toString()).toBe(changed);
+  });
+
+  it("retires variants that no longer meet a raised threshold", async () => {
+    await writeFile(join(dir, "app.js"), "x".repeat(4096));
+    await precompressDir(dir, resolvePrecompress({ threshold: 0 }) as ResolvedPrecompress);
+    // The variants still decode to the identity, so byte correspondence alone would keep
+    // them — but this build's policy no longer wants them at all.
+    await precompressDir(dir, resolvePrecompress({ threshold: 8192 }) as ResolvedPrecompress);
+    expect(await exists(join(dir, "app.js.br"))).toBe(false);
+    expect(await exists(join(dir, "app.js.gz"))).toBe(false);
+  });
+
+  it("replaces a correspondent variant that is not smaller than its identity", async () => {
+    const brOnly = resolvePrecompress({ threshold: 0, encodings: ["br"] }) as ResolvedPrecompress;
+    await writeFile(join(dir, "tiny.js"), "x");
+    // Valid brotli that decodes to the identity, yet larger than it. srvx compares nothing,
+    // so serving this would make the response bigger.
+    await writeFile(join(dir, "tiny.js.br"), brotliCompressSync(Buffer.from("x")));
+    await precompressDir(dir, brOnly);
+    expect(await exists(join(dir, "tiny.js.br"))).toBe(false);
   });
 
   it("the reported count matches the variants actually written", async () => {

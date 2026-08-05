@@ -82,13 +82,39 @@ function decode(encoding: PrecompressEncoding, bytes: Buffer): Promise<Buffer> {
 }
 
 /**
+ * Read a file that may legitimately have vanished since the walk listed it. Only ENOENT is
+ * benign: a permission or I/O error means the tree is not what it appears to be, and
+ * treating that as "absent" would leave whatever variants are already beside it.
+ */
+async function readIfPresent(path: string): Promise<Buffer | null> {
+  try {
+    return await readFile(path);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+/**
+ * The one size rule. srvx compares nothing, so a variant that is not strictly smaller than
+ * its identity would be served and would make the response bigger. Used both to accept a
+ * fresh encode and to accept one already on disk, so the two cannot drift apart.
+ */
+function improves(source: Buffer, variant: Buffer): boolean {
+  return variant.length < source.length;
+}
+
+/**
  * Remove a variant this build did not write. A failed unlink is not an unlink, so an
  * unremovable variant is fatal rather than a warning: leaving it would let srvx serve
  * stale bytes as the current file's body.
  */
 async function retire(variantPath: string): Promise<void> {
   await rm(variantPath, { force: true }).catch(() => {});
-  const survivor = await stat(variantPath).catch(() => null);
+  const survivor = await stat(variantPath).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === "ENOENT") return null;
+    throw error;
+  });
   if (survivor) {
     throw new Error(
       `[ud:node:precompress] could not remove the stale variant ${variantPath}. ` +
@@ -102,7 +128,11 @@ async function retire(variantPath: string): Promise<void> {
 async function collectFiles(dir: string): Promise<string[]> {
   const found: string[] = [];
   const walk = async (current: string): Promise<void> => {
-    const entries = await readdir(current, { withFileTypes: true }).catch(() => []);
+    const entries = await readdir(current, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
+      // A directory can vanish mid-walk; anything else means the listing is not trustworthy.
+      if (error.code === "ENOENT") return [];
+      throw error;
+    });
     for (const entry of entries) {
       const full = join(current, entry.name);
       if (entry.isDirectory()) await walk(full);
@@ -142,8 +172,10 @@ export interface PrecompressContext {
  */
 async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
   for (const encoding of resolved.encodings) {
+    // Unreadable for any reason means not usable as-is; the reconcile path below then
+    // deals with it and reports accurately if it cannot be removed.
     const bytes = await readFile(filePath + VARIANT_EXT[encoding]).catch(() => null);
-    if (!bytes) return false;
+    if (!bytes || !improves(source, bytes)) return false;
     const decoded = await decode(encoding, bytes).catch(() => null);
     if (!decoded || !decoded.equals(source)) return false;
   }
@@ -159,14 +191,15 @@ async function processFile(
   if (!NEGOTIABLE.has(extname(filePath).toLowerCase())) return 0;
   if (context.passThrough?.has(relPath)) return 0;
 
-  const source = await readFile(filePath).catch(() => null);
+  const source = await readIfPresent(filePath);
   if (!source) return 0;
-  // Emission runs once per environment, so a multi-environment build walks the same
-  // directory more than once. Without this, every pass after the first would re-encode
-  // everything the earlier ones already did.
-  if (await isCurrent(filePath, source, resolved)) return 0;
 
   const eligible = source.length >= resolved.threshold;
+  // Emission runs once per environment, so a multi-environment build walks the same
+  // directory more than once; without this, every later pass re-encodes what the first
+  // already did. Eligibility is decided FIRST: a file this build would not compress must
+  // reach the reconcile path below, or a variant left by a lower threshold would survive.
+  if (eligible && (await isCurrent(filePath, source, resolved))) return 0;
 
   let written = 0;
   for (const encoding of resolved.encodings) {
@@ -174,9 +207,7 @@ async function processFile(
     let emitted = false;
     if (eligible) {
       const encoded = await encode(encoding, source);
-      // srvx compares nothing: a variant larger than its identity would be served and
-      // would make the response bigger.
-      if (encoded.length < source.length) {
+      if (improves(source, encoded)) {
         await writeFile(variantPath, encoded);
         emitted = true;
         written++;
