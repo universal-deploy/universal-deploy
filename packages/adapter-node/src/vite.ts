@@ -30,8 +30,10 @@ function findClientOutDir(env: Environment) {
 }
 
 /** Absolute path of the directory that will be served, or `undefined` when static
- *  serving is off. Vite leaves `build.outDir` and a configured path relative to
- *  `config.root`, so both are anchored to it rather than to `process.cwd()`. */
+ *  serving is off. Always the **client** environment's directory, whichever environment
+ *  is passed — `env` supplies only the shared top-level config and root. Vite leaves
+ *  `build.outDir` and a configured path relative to `config.root`, so both are anchored
+ *  to it rather than to `process.cwd()`. */
 export function resolveStaticDir(env: Environment, configured: string | boolean | undefined): string | undefined {
   if (configured === false) return undefined;
   const path = typeof configured === "string" ? configured : findClientOutDir(env);
@@ -135,6 +137,8 @@ export function node(options?: {
       apply: "build",
       async closeBundle() {
         if (!precompress) return;
+        // The client's directory in every pass, including the ssr one — the walk targets
+        // what is served, not what the current environment emitted.
         const dir = resolveStaticDir(this.environment, options?.static);
         if (dir === undefined) return;
 

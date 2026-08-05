@@ -41,5 +41,9 @@ export function resolveStaticOptions(input: StaticOptionsInput): ResolvedStaticO
   // on-the-fly compression rather than trusting variants no walk owns.
   const reconciled = bakedDir !== undefined && dir === bakedDir;
 
+  // `renderHTML` is deliberately never passed: srvx computes
+  // `compressible = !renderHTML && isCompressible(contentType)` (static.ts:388-392), so
+  // setting it would skip variant probing for text/html entirely — every `.html.br` we
+  // emit would still be written and silently never served.
   return encodings && reconciled ? { dir, encodings } : { dir };
 }
