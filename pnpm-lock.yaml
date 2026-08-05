@@ -31,7 +31,7 @@ importers:
     dependencies:
       '@universal-middleware/core':
         specifier: ^0.4.18
-        version: 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+        version: 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
       awesome-framework:
         specifier: 0.0.0
         version: link:../../tests/awesome-framework
@@ -62,14 +62,14 @@ importers:
     dependencies:
       '@universal-middleware/core':
         specifier: ^0.4.18
-        version: 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+        version: 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
       awesome-framework:
         specifier: 0.0.0
         version: link:../../tests/awesome-framework
     devDependencies:
       '@netlify/vite-plugin':
         specifier: ^2.12.9
-        version: 2.12.9(rollup@4.53.5)(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
+        version: 2.12.9(rollup@4.53.5)(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       '@universal-deploy/e2e':
         specifier: 'workspace:'
         version: link:../../tests/e2e
@@ -158,7 +158,7 @@ importers:
         version: 1.167.1(@tanstack/query-core@5.90.12)(@tanstack/react-query@5.90.12(react@19.2.8))(@tanstack/react-router@1.170.19(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@tanstack/router-core@1.171.16)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@tanstack/react-start':
         specifier: ^1.168.36
-        version: 1.168.36(crossws@0.4.4(srvx@0.11.22))(esbuild@0.28.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
+        version: 1.168.36(crossws@0.4.4(srvx@0.12.5))(esbuild@0.28.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       '@tanstack/router-plugin':
         specifier: ^1.168.24
         version: 1.168.24(@tanstack/react-router@1.170.19(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(esbuild@0.28.1)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
@@ -222,7 +222,7 @@ importers:
         version: 8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2)
       vite-plugin-vercel:
         specifier: ^11.1.1
-        version: 11.1.1(h3@1.15.11)(hono@4.13.0)(rollup@4.53.5)(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
+        version: 11.1.1(rollup@4.53.5)(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       web-vitals:
         specifier: ^5.3.0
         version: 5.3.0
@@ -252,8 +252,8 @@ importers:
         specifier: ^0.30.21
         version: 0.30.21
       srvx:
-        specifier: ^0.11.22
-        version: 0.11.22
+        specifier: ^0.12.5
+        version: 0.12.5
     devDependencies:
       '@types/node':
         specifier: ^22.20.1
@@ -278,7 +278,7 @@ importers:
         version: 0.8.1
       srvx:
         specifier: '*'
-        version: 0.11.22
+        version: 0.12.5
     devDependencies:
       '@types/node':
         specifier: ^22.20.1
@@ -309,7 +309,7 @@ importers:
         version: link:../store
       '@universal-middleware/express':
         specifier: ^0.4.31
-        version: 0.4.31(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+        version: 0.4.31(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
       magic-string:
         specifier: ^0.30.21
         version: 0.30.21
@@ -340,13 +340,13 @@ importers:
         version: link:../../packages/store
       '@universal-middleware/core':
         specifier: ^0.4.18
-        version: 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+        version: 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
       '@universal-middleware/express':
         specifier: ^0.4.31
-        version: 0.4.31(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+        version: 0.4.31(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
       '@universal-middleware/srvx':
         specifier: ^0.1.3
-        version: 0.1.3(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+        version: 0.1.3(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
     devDependencies:
       '@types/node':
         specifier: ^22.20.1
@@ -5540,6 +5540,11 @@ packages:
     engines: {node: '>=20.16.0'}
     hasBin: true
 
+  srvx@0.12.5:
+    resolution: {integrity: sha512-IuvtDNQg5EIwv3c6dleyau7u8hCyGQ7D6+V/QM799Aud07z0wCUcurKLTRfyG33C8oUY+UWcVBFkfHMcbtmRLA==}
+    engines: {node: '>=20.16.0'}
+    hasBin: true
+
   stack-trace@0.0.10:
     resolution: {integrity: sha512-KGzahc7puUKkzyMt+IqAep+TVNbKP+k2Lmwhub39m1AsTSkaDutx56aDCo+HLDzf/D26BIHTJWNiTG1KAJiQCg==}
 
@@ -7472,7 +7477,7 @@ snapshots:
       semver: 7.8.5
       tmp-promise: 3.0.3
 
-  '@netlify/dev@4.18.12(rollup@4.53.5)(srvx@0.11.22)':
+  '@netlify/dev@4.18.12(rollup@4.53.5)(srvx@0.12.5)':
     dependencies:
       '@netlify/ai': 0.4.4
       '@netlify/blobs': 10.7.12
@@ -7482,7 +7487,7 @@ snapshots:
       '@netlify/edge-functions-dev': 1.0.23
       '@netlify/functions-dev': 1.3.4(rollup@4.53.5)
       '@netlify/headers': 2.1.12
-      '@netlify/images': 1.3.11(@netlify/blobs@10.7.12)(srvx@0.11.22)
+      '@netlify/images': 1.3.11(@netlify/blobs@10.7.12)(srvx@0.12.5)
       '@netlify/redirects': 3.1.14
       '@netlify/runtime': 4.1.28
       '@netlify/static': 3.1.11
@@ -7593,9 +7598,9 @@ snapshots:
     dependencies:
       '@netlify/headers-parser': 10.1.0
 
-  '@netlify/images@1.3.11(@netlify/blobs@10.7.12)(srvx@0.11.22)':
+  '@netlify/images@1.3.11(@netlify/blobs@10.7.12)(srvx@0.12.5)':
     dependencies:
-      ipx: 3.1.1(@netlify/blobs@10.7.12)(srvx@0.11.22)
+      ipx: 3.1.1(@netlify/blobs@10.7.12)(srvx@0.12.5)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -7666,9 +7671,9 @@ snapshots:
 
   '@netlify/types@2.8.0': {}
 
-  '@netlify/vite-plugin@2.12.9(rollup@4.53.5)(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
+  '@netlify/vite-plugin@2.12.9(rollup@4.53.5)(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
-      '@netlify/dev': 4.18.12(rollup@4.53.5)(srvx@0.11.22)
+      '@netlify/dev': 4.18.12(rollup@4.53.5)(srvx@0.12.5)
       '@netlify/dev-utils': 4.4.7
       dedent: 1.7.2
       vite: 8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2)
@@ -8453,14 +8458,14 @@ snapshots:
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
 
-  '@tanstack/react-start-rsc@0.1.35(crossws@0.4.4(srvx@0.11.22))(esbuild@0.28.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
+  '@tanstack/react-start-rsc@0.1.35(crossws@0.4.4(srvx@0.12.5))(esbuild@0.28.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
       '@tanstack/react-router': 1.170.19(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@tanstack/router-core': 1.171.16
       '@tanstack/router-utils': 1.162.2
       '@tanstack/start-client-core': 1.170.15
       '@tanstack/start-fn-stubs': 1.162.0
-      '@tanstack/start-plugin-core': 1.171.27(@tanstack/react-router@1.170.19(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(crossws@0.4.4(srvx@0.11.22))(esbuild@0.28.1)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
+      '@tanstack/start-plugin-core': 1.171.27(@tanstack/react-router@1.170.19(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(crossws@0.4.4(srvx@0.12.5))(esbuild@0.28.1)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       '@tanstack/start-storage-context': 1.167.18
       pathe: 2.0.3
       react: 19.2.8
@@ -8479,26 +8484,26 @@ snapshots:
       - vite-plugin-solid
       - webpack
 
-  '@tanstack/react-start-server@1.167.24(crossws@0.4.4(srvx@0.11.22))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@tanstack/react-start-server@1.167.24(crossws@0.4.4(srvx@0.12.5))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@tanstack/react-router': 1.170.19(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@tanstack/router-core': 1.171.16
-      '@tanstack/start-server-core': 1.169.19(crossws@0.4.4(srvx@0.11.22))
+      '@tanstack/start-server-core': 1.169.19(crossws@0.4.4(srvx@0.12.5))
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
     transitivePeerDependencies:
       - crossws
 
-  '@tanstack/react-start@1.168.36(crossws@0.4.4(srvx@0.11.22))(esbuild@0.28.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
+  '@tanstack/react-start@1.168.36(crossws@0.4.4(srvx@0.12.5))(esbuild@0.28.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
       '@tanstack/react-router': 1.170.19(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@tanstack/react-start-client': 1.168.17(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@tanstack/react-start-rsc': 0.1.35(crossws@0.4.4(srvx@0.11.22))(esbuild@0.28.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
-      '@tanstack/react-start-server': 1.167.24(crossws@0.4.4(srvx@0.11.22))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@tanstack/react-start-rsc': 0.1.35(crossws@0.4.4(srvx@0.12.5))(esbuild@0.28.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
+      '@tanstack/react-start-server': 1.167.24(crossws@0.4.4(srvx@0.12.5))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@tanstack/router-utils': 1.162.2
       '@tanstack/start-client-core': 1.170.15
-      '@tanstack/start-plugin-core': 1.171.27(@tanstack/react-router@1.170.19(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(crossws@0.4.4(srvx@0.11.22))(esbuild@0.28.1)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
-      '@tanstack/start-server-core': 1.169.19(crossws@0.4.4(srvx@0.11.22))
+      '@tanstack/start-plugin-core': 1.171.27(@tanstack/react-router@1.170.19(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(crossws@0.4.4(srvx@0.12.5))(esbuild@0.28.1)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
+      '@tanstack/start-server-core': 1.169.19(crossws@0.4.4(srvx@0.12.5))
       pathe: 2.0.3
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
@@ -8604,7 +8609,7 @@ snapshots:
 
   '@tanstack/start-fn-stubs@1.162.0': {}
 
-  '@tanstack/start-plugin-core@1.171.27(@tanstack/react-router@1.170.19(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(crossws@0.4.4(srvx@0.11.22))(esbuild@0.28.1)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
+  '@tanstack/start-plugin-core@1.171.27(@tanstack/react-router@1.170.19(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(crossws@0.4.4(srvx@0.12.5))(esbuild@0.28.1)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
       '@babel/code-frame': 7.27.1
       '@babel/core': 7.29.7
@@ -8613,7 +8618,7 @@ snapshots:
       '@tanstack/router-generator': 1.167.22
       '@tanstack/router-plugin': 1.168.24(@tanstack/react-router@1.170.19(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(esbuild@0.28.1)(rolldown@1.2.2)(rollup@4.53.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       '@tanstack/router-utils': 1.162.2
-      '@tanstack/start-server-core': 1.169.19(crossws@0.4.4(srvx@0.11.22))
+      '@tanstack/start-server-core': 1.169.19(crossws@0.4.4(srvx@0.12.5))
       exsolve: 1.0.8
       lightningcss: 1.33.0
       pathe: 2.0.3
@@ -8642,14 +8647,14 @@ snapshots:
       - vite-plugin-solid
       - webpack
 
-  '@tanstack/start-server-core@1.169.19(crossws@0.4.4(srvx@0.11.22))':
+  '@tanstack/start-server-core@1.169.19(crossws@0.4.4(srvx@0.12.5))':
     dependencies:
       '@tanstack/history': 1.162.0
       '@tanstack/router-core': 1.171.16
       '@tanstack/start-client-core': 1.170.15
       '@tanstack/start-storage-context': 1.167.18
       fetchdts: 0.1.7
-      h3-v2: h3@2.0.1-rc.20(crossws@0.4.4(srvx@0.11.22))
+      h3-v2: h3@2.0.1-rc.20(crossws@0.4.4(srvx@0.12.5))
       seroval: 1.6.2
     transitivePeerDependencies:
       - crossws
@@ -8787,6 +8792,13 @@ snapshots:
     transitivePeerDependencies:
       - srvx
 
+  '@universal-deploy/netlify@0.2.2(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
+    dependencies:
+      '@universal-deploy/store': 0.2.1(srvx@0.12.5)
+      vite: 8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2)
+    transitivePeerDependencies:
+      - srvx
+
   '@universal-deploy/node@0.1.9(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
       '@universal-deploy/store': 0.2.1(srvx@0.11.22)
@@ -8801,12 +8813,39 @@ snapshots:
     optionalDependencies:
       srvx: 0.11.22
 
+  '@universal-deploy/store@0.2.1(srvx@0.12.5)':
+    dependencies:
+      rou3: 0.8.1
+    optionalDependencies:
+      srvx: 0.12.5
+
   '@universal-deploy/vite@0.1.10(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
       '@universal-deploy/netlify': 0.2.2(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       '@universal-deploy/node': 0.1.9(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       '@universal-deploy/store': 0.2.1(srvx@0.11.22)
       '@universal-middleware/express': 0.4.31(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+      magic-string: 0.30.21
+      rou3: 0.8.1
+    optionalDependencies:
+      vite: 8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2)
+    transitivePeerDependencies:
+      - '@cloudflare/workers-types'
+      - '@hattip/core'
+      - '@types/express'
+      - '@webroute/route'
+      - elysia
+      - fastify
+      - h3
+      - hono
+      - srvx
+
+  '@universal-deploy/vite@0.1.10(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
+    dependencies:
+      '@universal-deploy/netlify': 0.2.2(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
+      '@universal-deploy/node': 0.1.9(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
+      '@universal-deploy/store': 0.2.1(srvx@0.12.5)
+      '@universal-middleware/express': 0.4.31(srvx@0.12.5)
       magic-string: 0.30.21
       rou3: 0.8.1
     optionalDependencies:
@@ -8831,10 +8870,56 @@ snapshots:
       hono: 4.13.0
       srvx: 0.11.22
 
+  '@universal-middleware/core@0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)':
+    dependencies:
+      regexparam: 3.0.0
+      tough-cookie: 6.0.2
+    optionalDependencies:
+      h3: 1.15.11
+      hono: 4.13.0
+      srvx: 0.12.5
+
+  '@universal-middleware/core@0.4.18(srvx@0.12.5)':
+    dependencies:
+      regexparam: 3.0.0
+      tough-cookie: 6.0.2
+    optionalDependencies:
+      srvx: 0.12.5
+
   '@universal-middleware/express@0.4.31(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)':
     dependencies:
       '@universal-middleware/core': 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
       '@universal-middleware/node': 0.2.2(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+    transitivePeerDependencies:
+      - '@cloudflare/workers-types'
+      - '@hattip/core'
+      - '@types/express'
+      - '@webroute/route'
+      - elysia
+      - fastify
+      - h3
+      - hono
+      - srvx
+
+  '@universal-middleware/express@0.4.31(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)':
+    dependencies:
+      '@universal-middleware/core': 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
+      '@universal-middleware/node': 0.2.2(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
+    transitivePeerDependencies:
+      - '@cloudflare/workers-types'
+      - '@hattip/core'
+      - '@types/express'
+      - '@webroute/route'
+      - elysia
+      - fastify
+      - h3
+      - hono
+      - srvx
+
+  '@universal-middleware/express@0.4.31(srvx@0.12.5)':
+    dependencies:
+      '@universal-middleware/core': 0.4.18(srvx@0.12.5)
+      '@universal-middleware/node': 0.2.2(srvx@0.12.5)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -8860,9 +8945,51 @@ snapshots:
       - hono
       - srvx
 
+  '@universal-middleware/node@0.2.2(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)':
+    dependencies:
+      '@universal-middleware/core': 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
+    transitivePeerDependencies:
+      - '@cloudflare/workers-types'
+      - '@hattip/core'
+      - '@types/express'
+      - '@webroute/route'
+      - elysia
+      - fastify
+      - h3
+      - hono
+      - srvx
+
+  '@universal-middleware/node@0.2.2(srvx@0.12.5)':
+    dependencies:
+      '@universal-middleware/core': 0.4.18(srvx@0.12.5)
+    transitivePeerDependencies:
+      - '@cloudflare/workers-types'
+      - '@hattip/core'
+      - '@types/express'
+      - '@webroute/route'
+      - elysia
+      - fastify
+      - h3
+      - hono
+      - srvx
+
   '@universal-middleware/srvx@0.1.3(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)':
     dependencies:
       '@universal-middleware/core': 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+    transitivePeerDependencies:
+      - '@cloudflare/workers-types'
+      - '@hattip/core'
+      - '@types/express'
+      - '@webroute/route'
+      - elysia
+      - fastify
+      - h3
+      - hono
+      - srvx
+
+  '@universal-middleware/srvx@0.1.3(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)':
+    dependencies:
+      '@universal-middleware/core': 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -9519,9 +9646,9 @@ snapshots:
     dependencies:
       uncrypto: 0.1.3
 
-  crossws@0.4.4(srvx@0.11.22):
+  crossws@0.4.4(srvx@0.12.5):
     optionalDependencies:
-      srvx: 0.11.22
+      srvx: 0.12.5
 
   css-select@5.2.2:
     dependencies:
@@ -10230,12 +10357,12 @@ snapshots:
       ufo: 1.6.3
       uncrypto: 0.1.3
 
-  h3@2.0.1-rc.20(crossws@0.4.4(srvx@0.11.22)):
+  h3@2.0.1-rc.20(crossws@0.4.4(srvx@0.12.5)):
     dependencies:
       rou3: 0.8.1
       srvx: 0.11.22
     optionalDependencies:
-      crossws: 0.4.4(srvx@0.11.22)
+      crossws: 0.4.4(srvx@0.12.5)
 
   has-bigints@1.1.0: {}
 
@@ -10327,7 +10454,7 @@ snapshots:
       hasown: 2.0.2
       side-channel: 1.1.0
 
-  ipx@3.1.1(@netlify/blobs@10.7.12)(srvx@0.11.22):
+  ipx@3.1.1(@netlify/blobs@10.7.12)(srvx@0.12.5):
     dependencies:
       '@fastify/accept-negotiator': 2.0.1
       citty: 0.1.6
@@ -10337,7 +10464,7 @@ snapshots:
       etag: 1.8.1
       h3: 1.15.11
       image-meta: 0.2.2
-      listhen: 1.9.1(srvx@0.11.22)
+      listhen: 1.9.1(srvx@0.12.5)
       ofetch: 1.5.1
       pathe: 2.0.3
       sharp: 0.34.5
@@ -10740,13 +10867,13 @@ snapshots:
       lightningcss-win32-arm64-msvc: 1.33.0
       lightningcss-win32-x64-msvc: 1.33.0
 
-  listhen@1.9.1(srvx@0.11.22):
+  listhen@1.9.1(srvx@0.12.5):
     dependencies:
       '@parcel/watcher': 2.5.6
       '@parcel/watcher-wasm': 2.5.6
       citty: 0.2.2
       consola: 3.4.2
-      crossws: 0.4.4(srvx@0.11.22)
+      crossws: 0.4.4(srvx@0.12.5)
       defu: 6.1.7
       get-port-please: 3.2.0
       h3: 1.15.11
@@ -11732,6 +11859,8 @@ snapshots:
 
   srvx@0.11.22: {}
 
+  srvx@0.12.5: {}
+
   stack-trace@0.0.10: {}
 
   stackback@0.0.2: {}
@@ -12180,6 +12309,37 @@ snapshots:
       '@manypkg/find-root': 3.1.0
       '@universal-deploy/store': 0.2.1(srvx@0.11.22)
       '@universal-deploy/vite': 0.1.10(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
+      '@vercel/build-utils': 13.36.3
+      '@vercel/nft': 1.10.2(rollup@4.53.5)
+      '@vercel/routing-utils': 6.4.1
+      '@vite-plugin-vercel/schemas': 1.1.1
+      convert-route: 1.1.1
+      fast-glob: 3.3.3
+      magicast: 0.5.4
+      nf3: 0.3.23
+      oxc-transform: 0.134.0
+      p-limit: 7.3.0
+      rolldown: 1.2.2
+      vite: 8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2)
+    transitivePeerDependencies:
+      - '@cloudflare/workers-types'
+      - '@hattip/core'
+      - '@types/express'
+      - '@webroute/route'
+      - elysia
+      - encoding
+      - fastify
+      - h3
+      - hono
+      - rollup
+      - srvx
+      - supports-color
+
+  vite-plugin-vercel@11.1.1(rollup@4.53.5)(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2)):
+    dependencies:
+      '@manypkg/find-root': 3.1.0
+      '@universal-deploy/store': 0.2.1(srvx@0.12.5)
+      '@universal-deploy/vite': 0.1.10(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       '@vercel/build-utils': 13.36.3
       '@vercel/nft': 1.10.2(rollup@4.53.5)
       '@vercel/routing-utils': 6.4.1
