@@ -19,9 +19,10 @@ node({
 Applies to `.css`, `.htm`, `.html`, `.js`, `.json`, `.mjs`, `.svg`, `.txt`, `.wasm` and `.xml`,
 and only when the encoded form is smaller. On-the-fly compression stays on for everything else.
 
-- **Stale variants are deleted.** If a file stops qualifying, the `.br`/`.gz` beside it is
-  removed — otherwise a rebuild with `emptyOutDir: false` would serve the previous build's
-  variant as the new file's body. One that cannot be deleted fails the build.
+- **Variants stay in sync with their sources.** Each build reconciles the `.br`/`.gz` beside
+  every file it visits: rewritten when the source changed, removed when the file no longer
+  qualifies. That is what keeps a rebuild into an existing directory from serving a previous
+  build's variant. If one cannot be removed, the build stops rather than leave it.
 - **`publicDir` files are yours.** Never compressed or cleaned up. A `.br` you ship in `public/`
   is still served; keeping it in step with its source is up to you.
 - **Runtime `static` wins.** Variant lookup is enabled only for the directory this build

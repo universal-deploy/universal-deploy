@@ -1,8 +1,7 @@
-import type { Stats } from "node:fs";
 import { readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { extname, join, posix, sep } from "node:path";
 import { promisify } from "node:util";
-import { brotliCompress, constants, gzip } from "node:zlib";
+import { brotliCompress, brotliDecompress, constants, gunzip, gzip } from "node:zlib";
 
 export type PrecompressEncoding = "br" | "gzip";
 
@@ -43,6 +42,8 @@ const CONCURRENCY = 4;
 
 const brotliAsync = promisify(brotliCompress);
 const gzipAsync = promisify(gzip);
+const brotliDecompressAsync = promisify(brotliDecompress);
+const gunzipAsync = promisify(gunzip);
 
 /** `undefined` when precompression is off — the single off-switch. */
 export function resolvePrecompress(
@@ -74,6 +75,10 @@ function encode(encoding: PrecompressEncoding, source: Buffer): Promise<Buffer> 
         },
       })
     : gzipAsync(source, { level: constants.Z_BEST_COMPRESSION });
+}
+
+function decode(encoding: PrecompressEncoding, bytes: Buffer): Promise<Buffer> {
+  return encoding === "br" ? brotliDecompressAsync(bytes) : gunzipAsync(bytes);
 }
 
 /**
@@ -126,19 +131,21 @@ export interface PrecompressContext {
 }
 
 /**
- * Whether every variant already post-dates its identity, in which case some earlier pass
- * — this build's or a previous one's — already reconciled this file.
+ * Whether every configured variant decodes to exactly the identity beside it.
  *
- * This is **not** the forbidden skip-if-a-variant-exists: existence says nothing about
- * whether the variant matches the identity beside it, which is how a stale variant from a
- * previous build survives a content change. A rewritten identity always carries a newer
- * mtime than the variant made from its previous contents, so it is never skipped here. A
- * tie, or a missing variant, falls through to doing the work.
+ * Only the decoded bytes decide. File metadata cannot: a timestamp is not a content
+ * correspondence, and a cache restore, an archive extraction or a timestamp-preserving
+ * copy can leave a changed identity whose mtime still predates its variant. Trusting that
+ * would serve the old body under the new file's URL — the hazard this walk exists to
+ * prevent, not an optimization. A missing variant, a decode failure, or any difference
+ * means reconcile.
  */
-async function isCurrent(filePath: string, identity: Stats, resolved: ResolvedPrecompress): Promise<boolean> {
+async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
   for (const encoding of resolved.encodings) {
-    const variant = await stat(filePath + VARIANT_EXT[encoding]).catch(() => null);
-    if (!variant || variant.mtimeMs <= identity.mtimeMs) return false;
+    const bytes = await readFile(filePath + VARIANT_EXT[encoding]).catch(() => null);
+    if (!bytes) return false;
+    const decoded = await decode(encoding, bytes).catch(() => null);
+    if (!decoded || !decoded.equals(source)) return false;
   }
   return true;
 }
@@ -152,14 +159,13 @@ async function processFile(
   if (!NEGOTIABLE.has(extname(filePath).toLowerCase())) return 0;
   if (context.passThrough?.has(relPath)) return 0;
 
-  const identity = await stat(filePath).catch(() => null);
-  if (!identity) return 0;
+  const source = await readFile(filePath).catch(() => null);
+  if (!source) return 0;
   // Emission runs once per environment, so a multi-environment build walks the same
   // directory more than once. Without this, every pass after the first would re-encode
   // everything the earlier ones already did.
-  if (await isCurrent(filePath, identity, resolved)) return 0;
+  if (await isCurrent(filePath, source, resolved)) return 0;
 
-  const source = await readFile(filePath);
   const eligible = source.length >= resolved.threshold;
 
   let written = 0;

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, rm, stat, utimes, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { brotliDecompressSync, gunzipSync } from "node:zlib";
@@ -175,6 +175,22 @@ describe("repeat passes over one directory", () => {
     const second = await precompressDir(dir, ALL);
     expect(second.written).toBe(2);
     expect(await exists(join(dir, "page.html.br"))).toBe(true);
+  });
+
+  it("reconciles a changed identity whose mtime was preserved below its variant's", async () => {
+    const changed = `${COMPRESSIBLE}export const changed = true;\n`;
+    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
+    await precompressDir(dir, ALL);
+    await writeFile(join(dir, "app.js"), changed);
+    // A cache restore, an archive extraction or a timestamp-preserving copy leaves the
+    // identity older than the variant made from its previous contents. Metadata says
+    // "current"; the bytes say otherwise, and the bytes decide.
+    const variant = await stat(join(dir, "app.js.br"));
+    const backdated = new Date(variant.mtimeMs - 5000);
+    await utimes(join(dir, "app.js"), backdated, backdated);
+    await precompressDir(dir, ALL);
+    expect(brotliDecompressSync(await readFile(join(dir, "app.js.br"))).toString()).toBe(changed);
+    expect(gunzipSync(await readFile(join(dir, "app.js.gz"))).toString()).toBe(changed);
   });
 
   it("the reported count matches the variants actually written", async () => {
