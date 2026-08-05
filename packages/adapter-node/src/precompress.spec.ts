@@ -203,7 +203,23 @@ describe("repeat passes over one directory", () => {
     expect(await exists(join(dir, "app.js.gz"))).toBe(false);
   });
 
-  it("replaces a correspondent variant that is not smaller than its identity", async () => {
+  it("keeps and serves a variant exactly the same size as its identity", async () => {
+    const brOnly = resolvePrecompress({ threshold: 0, encodings: ["br"] }) as ResolvedPrecompress;
+    // Witness for the boundary: brotli q11 encodes 10 repeated bytes to exactly 10 bytes.
+    // The hazard is a *larger* variant; an equal one costs the same on the wire and still
+    // spares the server an on-the-fly encode, so it is kept.
+    await writeFile(join(dir, "app.js"), "a".repeat(10));
+    const { written } = await precompressDir(dir, brOnly);
+    const identity = await stat(join(dir, "app.js"));
+    const variant = await stat(join(dir, "app.js.br"));
+    expect(variant.size).toBe(identity.size);
+    expect(written).toBe(1);
+    const response = await request({ dir, encodings: encodingsMap(brOnly) }, "br");
+    expect(response.headers.get("content-encoding")).toBe("br");
+    expect(response.headers.get("content-length")).toBe(String(variant.size));
+  });
+
+  it("replaces a correspondent variant that is larger than its identity", async () => {
     const brOnly = resolvePrecompress({ threshold: 0, encodings: ["br"] }) as ResolvedPrecompress;
     await writeFile(join(dir, "tiny.js"), "x");
     // Valid brotli that decodes to the identity, yet larger than it. srvx compares nothing,

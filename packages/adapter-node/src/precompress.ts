@@ -96,12 +96,14 @@ async function readIfPresent(path: string): Promise<Buffer | null> {
 }
 
 /**
- * The one size rule. srvx compares nothing, so a variant that is not strictly smaller than
- * its identity would be served and would make the response bigger. Used both to accept a
- * fresh encode and to accept one already on disk, so the two cannot drift apart.
+ * The one size rule: a variant may not be larger than its identity. srvx compares nothing,
+ * so a larger variant would be served and would make the response bigger — that is the
+ * whole hazard, and an equal-sized variant does not cause it: the wire cost is identical
+ * and the request still avoids on-the-fly compression. Used both to accept a fresh encode
+ * and to accept one already on disk, so the two cannot drift apart.
  */
-function improves(source: Buffer, variant: Buffer): boolean {
-  return variant.length < source.length;
+function notLarger(source: Buffer, variant: Buffer): boolean {
+  return variant.length <= source.length;
 }
 
 /**
@@ -175,7 +177,7 @@ async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPre
     // Unreadable for any reason means not usable as-is; the reconcile path below then
     // deals with it and reports accurately if it cannot be removed.
     const bytes = await readFile(filePath + VARIANT_EXT[encoding]).catch(() => null);
-    if (!bytes || !improves(source, bytes)) return false;
+    if (!bytes || !notLarger(source, bytes)) return false;
     const decoded = await decode(encoding, bytes).catch(() => null);
     if (!decoded || !decoded.equals(source)) return false;
   }
@@ -207,14 +209,14 @@ async function processFile(
     let emitted = false;
     if (eligible) {
       const encoded = await encode(encoding, source);
-      if (improves(source, encoded)) {
+      if (notLarger(source, encoded)) {
         await writeFile(variantPath, encoded);
         emitted = true;
         written++;
       }
     }
-    // Rewritten on every build, never skipped — a skip is how a stale variant survives
-    // a content change.
+    // Every variant this build did not write is removed: a leftover beside a file whose
+    // contents or eligibility changed is how stale bytes get served.
     if (!emitted) await retire(variantPath);
   }
   return written;
