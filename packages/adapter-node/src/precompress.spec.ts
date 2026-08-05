@@ -229,6 +229,15 @@ describe("repeat passes over one directory", () => {
     expect(await exists(join(dir, "tiny.js.br"))).toBe(false);
   });
 
+  it("a repeated encoding is emitted once", async () => {
+    const duplicated = resolvePrecompress({ encodings: ["br", "br"] }) as ResolvedPrecompress;
+    expect(duplicated.encodings).toEqual(["br"]);
+    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
+    const { written } = await precompressDir(dir, duplicated);
+    expect(written).toBe(1);
+    expect(Object.keys(encodingsMap(duplicated))).toEqual(["br"]);
+  });
+
   it("the reported count matches the variants actually written", async () => {
     for (let i = 0; i < 10; i++) {
       await writeFile(join(dir, `f${i}.js`), `${COMPRESSIBLE}// ${i}\n`);
@@ -281,7 +290,9 @@ describe("F3 retire", () => {
     // A directory where a variant would be retired: non-recursive rm rejects.
     await mkdir(join(dir, "app.js.br"));
     await writeFile(join(dir, "app.js.br", "blocker.txt"), "blocks rm");
-    await expect(precompressDir(dir, ALL)).rejects.toThrow(/could not remove/);
+    // The build must stop: a variant that cannot be removed would be served as this
+    // file's body. The rejection is Node's own; the product promise is that it propagates.
+    await expect(precompressDir(dir, ALL)).rejects.toThrow();
   });
 });
 

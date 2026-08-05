@@ -49,8 +49,8 @@ async function startServer() {
     gracefulShutdown: userServerEntry.gracefulShutdown ?? false,
     middleware: [
       ...(userServerEntry.middleware ?? []),
-      staticOptions && createStatic ? createStatic(staticOptions) : undefined,
-    ].filter(Boolean) as ServerMiddleware[],
+      ...(staticOptions && createStatic ? [createStatic(staticOptions)] : []),
+    ],
     manual: true,
   });
 

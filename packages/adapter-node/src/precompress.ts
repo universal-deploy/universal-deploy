@@ -1,4 +1,4 @@
-import { readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { extname, join, posix, sep } from "node:path";
 import { promisify } from "node:util";
 import { brotliCompress, brotliDecompress, constants, gunzip, gzip } from "node:zlib";
@@ -52,7 +52,9 @@ export function resolvePrecompress(
   if (!configured) return undefined;
   const options = configured === true ? {} : configured;
   return {
-    encodings: options.encodings ?? ["br", "gzip"],
+    // Deduplicated, insertion-ordered: a repeated encoding would re-encode and rewrite
+    // the same path and inflate the reported count, while `encodingsMap` collapses it anyway.
+    encodings: [...new Set<PrecompressEncoding>(options.encodings ?? ["br", "gzip"])],
     threshold: options.threshold ?? 1024,
   };
 }
@@ -104,25 +106,6 @@ async function readIfPresent(path: string): Promise<Buffer | null> {
  */
 function notLarger(source: Buffer, variant: Buffer): boolean {
   return variant.length <= source.length;
-}
-
-/**
- * Remove a variant this build did not write. A failed unlink is not an unlink, so an
- * unremovable variant is fatal rather than a warning: leaving it would let srvx serve
- * stale bytes as the current file's body.
- */
-async function retire(variantPath: string): Promise<void> {
-  await rm(variantPath, { force: true }).catch(() => {});
-  const survivor = await stat(variantPath).catch((error: NodeJS.ErrnoException) => {
-    if (error.code === "ENOENT") return null;
-    throw error;
-  });
-  if (survivor) {
-    throw new Error(
-      `[ud:node:precompress] could not remove the stale variant ${variantPath}. ` +
-        `Leaving it would let it be served as the current file's body.`,
-    );
-  }
 }
 
 /** Every file under `dir`, as absolute paths. Nothing is filtered here — extensions are
@@ -206,25 +189,20 @@ async function processFile(
   let written = 0;
   for (const encoding of resolved.encodings) {
     const variantPath = filePath + VARIANT_EXT[encoding];
-    let emitted = false;
     if (eligible) {
       const encoded = await encode(encoding, source);
       if (notLarger(source, encoded)) {
         await writeFile(variantPath, encoded);
-        emitted = true;
         written++;
+        continue;
       }
     }
-    // Every variant this build did not write is removed: a leftover beside a file whose
-    // contents or eligibility changed is how stale bytes get served.
-    if (!emitted) await retire(variantPath);
+    // Anything this build did not write is removed: a leftover beside a file whose
+    // contents or eligibility changed is how stale bytes get served. `force` ignores an
+    // absent variant and rejects a real failure, which must stop the build.
+    await rm(variantPath, { force: true });
   }
   return written;
-}
-
-export interface PrecompressResult {
-  scanned: number;
-  written: number;
 }
 
 /**
@@ -235,15 +213,15 @@ export async function precompressDir(
   dir: string,
   resolved: ResolvedPrecompress,
   context: PrecompressContext = {},
-): Promise<PrecompressResult> {
+): Promise<{ written: number }> {
   const files = await collectFiles(dir);
   const prefix = dir.endsWith(sep) ? dir.length : dir.length + 1;
 
   let next = 0;
   let written = 0;
   const worker = async (): Promise<void> => {
-    for (let i = next++; i < files.length; i = next++) {
-      const filePath = files[i] as string;
+    while (next < files.length) {
+      const filePath = files[next++] as string;
       const relPath = filePath.slice(prefix).split(sep).join(posix.sep);
       const count = await processFile(filePath, relPath, resolved, context);
       written += count;
@@ -251,5 +229,5 @@ export async function precompressDir(
   };
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, files.length) }, worker));
 
-  return { scanned: files.length, written };
+  return { written };
 }
