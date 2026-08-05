@@ -2,6 +2,23 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
 
+test("an HTML variant is served from disk", async ({ request }, testInfo) => {
+  test.skip(!testInfo.config.metadata.precompress, "app does not enable precompression");
+  test.skip(!process.env.RUN_CMD, "production build only");
+
+  // srvx skips variant probing for text/html when its `renderHTML` option is set, so this
+  // asserts the adapter has not adopted it: the variants would still be emitted, silently
+  // never served, with no error and nothing else failing.
+  const variant = path.join(process.cwd(), "dist/client/index.html.br");
+  const size = (await fs.stat(variant)).size;
+
+  const response = await request.get("/index.html", { headers: { "accept-encoding": "br" } });
+  expect(response.status()).toBe(200);
+  const headers = response.headers();
+  expect(headers["content-encoding"]).toBe("br");
+  expect(headers["content-length"]).toBe(String(size));
+});
+
 test("a precompressed variant is served from disk", async ({ request }, testInfo) => {
   test.skip(!testInfo.config.metadata.precompress, "app does not enable precompression");
   test.skip(!process.env.RUN_CMD, "production build only");
