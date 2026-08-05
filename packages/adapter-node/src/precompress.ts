@@ -129,11 +129,16 @@ async function collectFiles(dir: string): Promise<string[]> {
   return found;
 }
 
+/** Maps absolute paths under `dir` to `dir`-relative, `/`-separated ones. */
+function relativeTo(dir: string): (file: string) => string {
+  const prefix = dir.endsWith(sep) ? dir.length : dir.length + 1;
+  return (file) => file.slice(prefix).split(sep).join(posix.sep);
+}
+
 /** Paths under `dir`, relative to it and with `/` separators. */
 export async function collectRelativeFiles(dir: string): Promise<Set<string>> {
   const files = await collectFiles(dir);
-  const prefix = dir.endsWith(sep) ? dir.length : dir.length + 1;
-  return new Set(files.map((file) => file.slice(prefix).split(sep).join(posix.sep)));
+  return new Set(files.map(relativeTo(dir)));
 }
 
 export interface PrecompressContext {
@@ -218,15 +223,14 @@ export async function precompressDir(
   context: PrecompressContext = {},
 ): Promise<{ written: number }> {
   const files = await collectFiles(dir);
-  const prefix = dir.endsWith(sep) ? dir.length : dir.length + 1;
+  const toRelative = relativeTo(dir);
 
-  let next = 0;
+  // One cursor shared by every worker, so each file is handed out exactly once.
+  const queue = files[Symbol.iterator]();
   let written = 0;
   const worker = async (): Promise<void> => {
-    while (next < files.length) {
-      const filePath = files[next++] as string;
-      const relPath = filePath.slice(prefix).split(sep).join(posix.sep);
-      const count = await processFile(filePath, relPath, resolved, context);
+    for (const filePath of queue) {
+      const count = await processFile(filePath, toRelative(filePath), resolved, context);
       written += count;
     }
   };
