@@ -9,11 +9,11 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@playwright/test": "^1.57.0"
+    "@playwright/test": "^1.62.1"
   },
   "devDependencies": {
-    "@types/node": "^22.19.15",
-    "playwright": "^1.57.0",
+    "@types/node": "^22.20.1",
+    "playwright": "^1.62.1",
     "typescript": "^5.9.3"
   },
   "exports": {

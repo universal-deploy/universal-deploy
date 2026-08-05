@@ -1,5 +1,5 @@
 import { netlify } from "@universal-deploy/netlify/vite";
-import config from "./vite.common.config";
+import config from "./vite.common.config.js";
 
 config.plugins ??= [];
 // Enables building for Netlify (development and deploy builds).

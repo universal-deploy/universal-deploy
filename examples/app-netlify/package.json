@@ -11,15 +11,15 @@
     "test:types": "tsc --noEmit"
   },
   "devDependencies": {
-    "@netlify/vite-plugin": "^2.11.3",
+    "@netlify/vite-plugin": "^2.12.9",
     "@universal-deploy/e2e": "workspace:",
     "@universal-deploy/netlify": "workspace:^",
-    "playwright": "^1.57.0",
+    "playwright": "^1.62.1",
     "typescript": "^5.9.3",
-    "vite": "^8.0.8"
+    "vite": "^8.2.0"
   },
   "dependencies": {
-    "@universal-middleware/core": "^0.4.17",
+    "@universal-middleware/core": "^0.4.18",
     "awesome-framework": "0.0.0"
   }
 }

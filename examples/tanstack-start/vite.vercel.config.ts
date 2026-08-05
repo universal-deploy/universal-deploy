@@ -1,5 +1,5 @@
 import { vercel } from "vite-plugin-vercel/vite";
-import config from "./vite.common.config";
+import config from "./vite.common.config.js";
 
 config.plugins ??= [];
 // Enables building for Vercel (development and deploy builds).

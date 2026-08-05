@@ -13,9 +13,9 @@
     "@universal-deploy/e2e": "workspace:",
     "@universal-deploy/store": "workspace:^",
     "@universal-deploy/vite": "workspace:^",
-    "playwright": "^1.57.0",
+    "playwright": "^1.62.1",
     "typescript": "^5.9.3",
-    "vite": "^8.0.8"
+    "vite": "^8.2.0"
   },
   "dependencies": {
     "awesome-framework": "0.0.0"

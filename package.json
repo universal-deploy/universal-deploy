@@ -25,15 +25,15 @@
     "release:beta": "changeset pre enter beta && changeset version && pnpm publish -r --no-git-checks --tag beta"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.6",
-    "@brillout/test-e2e": "^0.6.22",
-    "@changesets/cli": "^2.30.0",
+    "@biomejs/biome": "^2.5.7",
+    "@brillout/test-e2e": "^0.6.23",
+    "@changesets/cli": "^2.31.1",
     "@vikejs/biome-config": "^2.0.1",
-    "playwright": "^1.57.0"
+    "playwright": "^1.62.1"
   },
   "pnpm": {
     "overrides": {
-      "@types/node": "^22.19.15"
+      "@types/node": "^22.20.1"
     },
     "onlyBuiltDependencies": [
       "@parcel/watcher",

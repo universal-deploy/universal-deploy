@@ -1,5 +1,5 @@
 import { cloudflare } from "@cloudflare/vite-plugin";
-import config from "./vite.common.config";
+import config from "./vite.common.config.js";
 
 config.plugins ??= [];
 // Enables building for Cloudflare Workers (development and deploy builds).
