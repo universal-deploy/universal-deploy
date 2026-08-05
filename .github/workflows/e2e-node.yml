@@ -4,7 +4,7 @@ jobs:
   e2e:
     strategy:
       matrix:
-        node: [20.x, 22.x, 24.x]
+        node: [22.x, 24.x, 26.x]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
