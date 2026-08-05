@@ -6,13 +6,7 @@ import { brotliCompressSync, brotliDecompressSync, gunzipSync } from "node:zlib"
 import { staticMiddleware } from "srvx/static";
 import type { Environment } from "vite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import {
-  encodingsMap,
-  type PrecompressEncoding,
-  precompressDir,
-  type ResolvedPrecompress,
-  resolvePrecompress,
-} from "./precompress.js";
+import { encodingsMap, precompressDir, type ResolvedPrecompress, resolvePrecompress } from "./precompress.js";
 import { type ResolvedStaticOptions, resolveStaticOptions } from "./static-options.js";
 import { node, resolveStaticDir, resolveStaticHint } from "./vite.js";
 
@@ -384,16 +378,6 @@ describe("the emission pass sees everything the build wrote", () => {
     expect(plugin().applyToEnvironment).toBeUndefined();
   });
 });
-
-/**
- * `PrecompressEncoding` derives from the codec table's keys, so a key added there widens it
- * silently: `encodingsMap` would hand srvx an encoding it never negotiates, and the variants
- * would be written and never served. Checked bidirectionally — assignability alone passes a
- * widened union. This one fails under `test:types`, not `vitest`.
- */
-type Eq<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
-const encodingsAreExactly: Eq<PrecompressEncoding, "br" | "gzip"> = true;
-void encodingsAreExactly;
 
 describe("off is inert", () => {
   it("resolvePrecompress returns undefined for every off value", () => {

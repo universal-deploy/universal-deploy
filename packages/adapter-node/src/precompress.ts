@@ -8,6 +8,8 @@ const gzipAsync = promisify(gzip);
 const brotliDecompressAsync = promisify(brotliDecompress);
 const gunzipAsync = promisify(gunzip);
 
+export type PrecompressEncoding = "br" | "gzip";
+
 interface Codec {
   /** Suffix of the variant file, and the value srvx is handed to look one up. */
   ext: string;
@@ -15,7 +17,8 @@ interface Codec {
   decode: (bytes: Buffer) => Promise<Buffer>;
 }
 
-/** One entry per encoding, so a new one is added in a single place. */
+/** Everything one encoding needs — suffix, encode, decode — in one entry, checked against
+ *  `PrecompressEncoding` so the table and the union cannot disagree. */
 const CODECS = {
   br: {
     ext: ".br",
@@ -34,9 +37,7 @@ const CODECS = {
     encode: (source) => gzipAsync(source, { level: constants.Z_BEST_COMPRESSION }),
     decode: (bytes) => gunzipAsync(bytes),
   },
-} satisfies Record<string, Codec>;
-
-export type PrecompressEncoding = keyof typeof CODECS;
+} satisfies Record<PrecompressEncoding, Codec>;
 
 export interface PrecompressOptions {
   /**
