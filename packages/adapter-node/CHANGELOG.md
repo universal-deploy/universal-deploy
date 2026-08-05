@@ -1,5 +1,15 @@
 # @universal-deploy/node
 
+## 0.1.10
+
+### Patch Changes
+
+- 0eb9334: fix root-anchor static-directory resolution
+- ff1f103: update srvx to ^0.12
+- 97e4393: fix: upgrade dependencies
+- Updated dependencies [97e4393]
+  - @universal-deploy/store@0.2.2
+
 ## 0.1.9
 
 ### Patch Changes

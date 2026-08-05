@@ -1,5 +1,11 @@
 # @universal-deploy/store
 
+## 0.2.2
+
+### Patch Changes
+
+- 97e4393: fix: upgrade dependencies
+
 ## 0.2.1
 
 ### Patch Changes

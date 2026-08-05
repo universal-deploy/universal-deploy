@@ -1,5 +1,13 @@
 # @universal-deploy/netlify
 
+## 0.2.3
+
+### Patch Changes
+
+- 97e4393: fix: upgrade dependencies
+- Updated dependencies [97e4393]
+  - @universal-deploy/store@0.2.2
+
 ## 0.2.2
 
 ### Patch Changes

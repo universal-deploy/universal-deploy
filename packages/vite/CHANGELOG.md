@@ -1,5 +1,17 @@
 # @universal-deploy/vite
 
+## 0.1.11
+
+### Patch Changes
+
+- 97e4393: fix: upgrade dependencies
+- Updated dependencies [0eb9334]
+- Updated dependencies [ff1f103]
+- Updated dependencies [97e4393]
+  - @universal-deploy/node@0.1.10
+  - @universal-deploy/netlify@0.2.3
+  - @universal-deploy/store@0.2.2
+
 ## 0.1.10
 
 ### Patch Changes
