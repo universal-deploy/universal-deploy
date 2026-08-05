@@ -22,16 +22,29 @@ function findClientOutDir(env: Environment) {
   return envs.find((e) => e.consumer === "client")?.build.outDir;
 }
 
+/** Absolute path of the directory that will be served, or `undefined` when static
+ *  serving is off. Vite leaves `build.outDir` and a configured path relative to
+ *  `config.root`, so both are anchored to it rather than to `process.cwd()`. */
+export function resolveStaticDir(env: Environment, configured: string | boolean | undefined): string | undefined {
+  if (configured === false) return undefined;
+  const path = typeof configured === "string" ? configured : findClientOutDir(env);
+  if (path === undefined) return undefined;
+  return resolve(env.config.root, path);
+}
+
 /** Compute the value baked into `__UD_STATIC__`. Absolute paths pass through —
  *  the user owns them. Otherwise we emit a path relative to the server entry so
- *  the artifact is portable across filesystems. */
+ *  the artifact is portable across filesystems.
+ *
+ *  Derives from `resolveStaticDir` so the directory precompression walks and the
+ *  directory the server resolves at runtime cannot diverge. */
 export function resolveStaticHint(env: Environment, configured: string | boolean | undefined): string | false {
-  if (configured === false) return false;
   if (typeof configured === "string" && isAbsolute(configured)) return normalizePath(configured);
-  const abs = typeof configured === "string" ? resolve(env.config.root, configured) : findClientOutDir(env);
+  const abs = resolveStaticDir(env, configured);
   if (abs === undefined) return false;
+  const serverOutDir = resolve(env.config.root, env.config.build.outDir);
   // POSIX-style embedded path so a Windows build runs on POSIX too.
-  return normalizePath(relative(env.config.build.outDir, abs)) || ".";
+  return normalizePath(relative(serverOutDir, abs)) || ".";
 }
 
 // Creates a server and listens for connections in Node/Deno/Bun
