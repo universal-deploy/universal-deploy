@@ -17,16 +17,16 @@
     "@universal-deploy/netlify": "workspace:^",
     "@universal-deploy/node": "workspace:^",
     "@universal-deploy/store": "workspace:^",
-    "@universal-middleware/express": "^0.4.26",
+    "@universal-middleware/express": "^0.4.31",
     "magic-string": "^0.30.21",
     "rou3": "^0.8.1"
   },
   "devDependencies": {
-    "@types/node": "^22.19.15",
+    "@types/node": "^22.20.1",
     "tsdown": "^0.20.3",
     "typescript": "^5.9.3",
-    "vite": "^8.0.0-beta.13",
-    "vitest": "^3.0.7"
+    "vite": "^8.2.0",
+    "vitest": "^3.2.7"
   },
   "peerDependencies": {
     "vite": ">=7.1"
