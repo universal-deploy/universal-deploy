@@ -156,23 +156,20 @@ async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPre
   return true;
 }
 
-async function processFile(
+/** Whether the variants beside this file are ours to write and remove. */
+function ownsVariantsFor(filePath: string, relPath: string, context: PrecompressContext): boolean {
+  if (!NEGOTIABLE.has(extname(filePath).toLowerCase())) return false;
+  return !context.passThrough?.has(relPath);
+}
+
+/** Write the variants this build owes and remove the ones it does not, returning how many
+ *  were written. */
+async function reconcile(
   filePath: string,
-  relPath: string,
+  source: Buffer,
+  eligible: boolean,
   resolved: ResolvedPrecompress,
-  context: PrecompressContext,
 ): Promise<number> {
-  if (!NEGOTIABLE.has(extname(filePath).toLowerCase())) return 0;
-  if (context.passThrough?.has(relPath)) return 0;
-
-  const source = await readIfPresent(filePath);
-  if (!source) return 0;
-
-  const eligible = source.length >= resolved.threshold;
-  // Eligibility first: an ineligible file must reach the reconcile loop, or a variant left
-  // by a lower threshold would survive.
-  if (eligible && (await isCurrent(filePath, source, resolved))) return 0;
-
   let written = 0;
   for (const encoding of resolved.encodings) {
     const codec = CODECS[encoding];
@@ -190,6 +187,25 @@ async function processFile(
     await rm(variantPath, { force: true });
   }
   return written;
+}
+
+async function processFile(
+  filePath: string,
+  relPath: string,
+  resolved: ResolvedPrecompress,
+  context: PrecompressContext,
+): Promise<number> {
+  if (!ownsVariantsFor(filePath, relPath, context)) return 0;
+
+  const source = await readIfPresent(filePath);
+  if (!source) return 0;
+
+  const eligible = source.length >= resolved.threshold;
+  // Eligibility first: an ineligible file must reach `reconcile`, or a variant left by a
+  // lower threshold would survive.
+  if (eligible && (await isCurrent(filePath, source, resolved))) return 0;
+
+  return reconcile(filePath, source, eligible, resolved);
 }
 
 /**
