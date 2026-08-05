@@ -18,20 +18,15 @@ node({
 })
 ```
 
-Applies to `.css`, `.htm`, `.html`, `.js`, `.json`, `.mjs`, `.svg`, `.txt`, `.wasm` and `.xml`,
-and only when the encoded form is no larger than the original. On-the-fly compression
-stays on for everything else.
+Eligible: `.css`, `.htm`, `.html`, `.js`, `.json`, `.mjs`, `.svg`, `.txt`, `.wasm` and `.xml`, at
+or above `threshold`, when the encoded form is no larger. Everything else is compressed per
+request, as before.
 
-- **Variants stay in sync with their sources.** For the extensions above, and for the
-  encodings you configured, each build rewrites the `.br`/`.gz` when the source changed and
-  removes it when the file no longer qualifies. That is what keeps a rebuild into an existing
-  directory from serving a previous build's variant. If one cannot be removed, the build stops
-  rather than leave it. Other extensions, other encodings, and `publicDir` files are untouched.
-- **`publicDir` files are yours.** Never compressed or cleaned up. A `.br` you ship in `public/`
-  is still served; keeping it in step with its source is up to you.
-- **Runtime `static` wins.** Variant lookup is enabled only for the directory this build
-  precompressed; a different resolved directory falls back to on-the-fly compression.
-- **Not covered:** pages produced by a separate pre-render run (`$ vike prerender`), which
-  starts no Vite build; and assets built without `precompress` behind a server built with it —
-  build both together. Leftovers from a disabled option or a dropped encoding are never probed,
-  so they are inert.
+Each build rewrites the variants it owns and deletes the ones a file no longer earns, so
+rebuilding into an existing directory cannot serve a previous build's bytes; a variant it cannot
+delete fails the build. Files in `publicDir` are yours — never compressed, never deleted.
+
+Not covered: a runtime `static` pointing anywhere other than the directory this build
+precompressed, and a client built separately without `precompress` — both fall back to
+per-request compression; and pages written by a pre-render step that runs no Vite build.
+Variants left behind by a removed encoding are never looked up.
