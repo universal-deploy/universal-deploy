@@ -225,4 +225,6 @@ export function node(options?: {
   ];
 }
 
+export type { PrecompressEncoding, PrecompressOptions } from "./precompress.js";
+
 export default node;
