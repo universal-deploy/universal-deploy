@@ -3,7 +3,40 @@ import { extname, join, posix, sep } from "node:path";
 import { promisify } from "node:util";
 import { brotliCompress, brotliDecompress, constants, gunzip, gzip } from "node:zlib";
 
-export type PrecompressEncoding = "br" | "gzip";
+const brotliAsync = promisify(brotliCompress);
+const gzipAsync = promisify(gzip);
+const brotliDecompressAsync = promisify(brotliDecompress);
+const gunzipAsync = promisify(gunzip);
+
+interface Codec {
+  /** Suffix of the variant file, and the value srvx is handed to look one up. */
+  ext: string;
+  encode: (source: Buffer) => Promise<Buffer>;
+  decode: (bytes: Buffer) => Promise<Buffer>;
+}
+
+/** One entry per encoding, so a new one is added in a single place. */
+const CODECS = {
+  br: {
+    ext: ".br",
+    encode: (source) =>
+      brotliAsync(source, {
+        params: {
+          // Build time, once — the whole point of not paying it per request.
+          [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY,
+          [constants.BROTLI_PARAM_SIZE_HINT]: source.length,
+        },
+      }),
+    decode: (bytes) => brotliDecompressAsync(bytes),
+  },
+  gzip: {
+    ext: ".gz",
+    encode: (source) => gzipAsync(source, { level: constants.Z_BEST_COMPRESSION }),
+    decode: (bytes) => gunzipAsync(bytes),
+  },
+} satisfies Record<string, Codec>;
+
+export type PrecompressEncoding = keyof typeof CODECS;
 
 export interface PrecompressOptions {
   /**
@@ -34,16 +67,9 @@ export interface ResolvedPrecompress {
  */
 const NEGOTIABLE = new Set([".css", ".htm", ".html", ".js", ".json", ".mjs", ".svg", ".txt", ".wasm", ".xml"]);
 
-const VARIANT_EXT: Record<PrecompressEncoding, string> = { br: ".br", gzip: ".gz" };
-
 // `node:zlib`'s async calls run on libuv's threadpool, which defaults to 4 workers;
 // queueing past it buys no parallelism while multiplying peak memory.
 const CONCURRENCY = 4;
-
-const brotliAsync = promisify(brotliCompress);
-const gzipAsync = promisify(gzip);
-const brotliDecompressAsync = promisify(brotliDecompress);
-const gunzipAsync = promisify(gunzip);
 
 /** `undefined` when precompression is off — the single off-switch. */
 export function resolvePrecompress(
@@ -64,23 +90,7 @@ export function resolvePrecompress(
  * beats the client's `Accept-Encoding` order, so it must follow `encodings`.
  */
 export function encodingsMap(resolved: ResolvedPrecompress): Record<string, string> {
-  return Object.fromEntries(resolved.encodings.map((name) => [name, VARIANT_EXT[name]]));
-}
-
-function encode(encoding: PrecompressEncoding, source: Buffer): Promise<Buffer> {
-  return encoding === "br"
-    ? brotliAsync(source, {
-        params: {
-          // Build time, once — the whole point of not paying it per request.
-          [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY,
-          [constants.BROTLI_PARAM_SIZE_HINT]: source.length,
-        },
-      })
-    : gzipAsync(source, { level: constants.Z_BEST_COMPRESSION });
-}
-
-function decode(encoding: PrecompressEncoding, bytes: Buffer): Promise<Buffer> {
-  return encoding === "br" ? brotliDecompressAsync(bytes) : gunzipAsync(bytes);
+  return Object.fromEntries(resolved.encodings.map((name) => [name, CODECS[name].ext]));
 }
 
 /**
@@ -157,11 +167,12 @@ export interface PrecompressContext {
  */
 async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
   for (const encoding of resolved.encodings) {
+    const codec = CODECS[encoding];
     // Unreadable for any reason means not usable as-is; the reconcile path below then
     // deals with it and reports accurately if it cannot be removed.
-    const bytes = await readFile(filePath + VARIANT_EXT[encoding]).catch(() => null);
+    const bytes = await readFile(filePath + codec.ext).catch(() => null);
     if (!bytes || !notLarger(source, bytes)) return false;
-    const decoded = await decode(encoding, bytes).catch(() => null);
+    const decoded = await codec.decode(bytes).catch(() => null);
     if (!decoded || !decoded.equals(source)) return false;
   }
   return true;
@@ -188,9 +199,10 @@ async function processFile(
 
   let written = 0;
   for (const encoding of resolved.encodings) {
-    const variantPath = filePath + VARIANT_EXT[encoding];
+    const codec = CODECS[encoding];
+    const variantPath = filePath + codec.ext;
     if (eligible) {
-      const encoded = await encode(encoding, source);
+      const encoded = await codec.encode(source);
       if (notLarger(source, encoded)) {
         await writeFile(variantPath, encoded);
         written++;
