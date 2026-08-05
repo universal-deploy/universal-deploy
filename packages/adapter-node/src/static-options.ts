@@ -18,32 +18,27 @@ export interface ResolvedStaticOptions {
   encodings?: Record<string, string>;
 }
 
-/**
- * Decide whether to serve static files, from where, and whether precompressed
- * variants may be looked up.
- *
- * Both directories are resolved here, at runtime, from `entryDir` — neither is a
- * build-machine path, so a relocated build (Docker, build-here-serve-there) still
- * compares equal.
- */
+/** Absolute directory to serve, or `undefined` when static serving is off. The server
+ *  entry's own `static` overrides the hint baked at build time. */
+function servedDir(entryDir: string, baked: string | false, runtime: string | boolean | undefined): string | undefined {
+  const effective = runtime ?? baked;
+  if (typeof effective !== "string") return undefined;
+  return resolve(entryDir, effective);
+}
+
+/** Whether `dir` is the directory this build precompressed. Both sides resolve at runtime
+ *  from `entryDir`, so a relocated build still compares equal. */
+function servesThisBuildsOutput(entryDir: string, baked: string | false, dir: string): boolean {
+  return typeof baked === "string" && dir === resolve(entryDir, baked);
+}
+
+/** Whether to serve static files, from where, and whether variants may be looked up. */
 export function resolveStaticOptions(input: StaticOptionsInput): ResolvedStaticOptions | undefined {
   const { entryDir, bakedStatic, runtimeStatic, encodings } = input;
 
-  const effective = runtimeStatic ?? bakedStatic;
-  // A non-string value — `false`, `true`, or nothing at all — means no static middleware.
-  if (typeof effective !== "string") return undefined;
-  const dir = resolve(entryDir, effective);
+  const dir = servedDir(entryDir, bakedStatic, runtimeStatic);
+  if (dir === undefined) return undefined;
 
-  const bakedDir = typeof bakedStatic === "string" ? resolve(entryDir, bakedStatic) : undefined;
-  // Variants are only reconciled in the directory this build walked, so lookup is enabled
-  // only there. Both sides are already `resolve()`d, so `.`/`..` and separator differences
-  // compare equal; a case difference or a symlink alias does not, and falls back to
-  // on-the-fly compression rather than trusting variants no walk owns.
-  const reconciled = bakedDir !== undefined && dir === bakedDir;
-
-  // `renderHTML` is deliberately never passed: srvx computes
-  // `compressible = !renderHTML && isCompressible(contentType)` (static.ts:388-392), so
-  // setting it would skip variant probing for text/html entirely — every `.html.br` we
-  // emit would still be written and silently never served.
-  return encodings && reconciled ? { dir, encodings } : { dir };
+  const serveVariants = encodings && servesThisBuildsOutput(entryDir, bakedStatic, dir);
+  return serveVariants ? { dir, encodings } : { dir };
 }
