@@ -129,7 +129,7 @@ export function node(options?: {
     // Runs at EVERY environment's `closeBundle`, not just the client's: a framework may
     // write more servable files from a later environment — vike pre-renders HTML inside
     // the ssr environment's `writeBundle` — and those would otherwise never be seen.
-    // Repeat passes are near-free; `precompressDir` skips what is already current.
+    // A later pass still walks and verifies; what it skips is re-encoding what is current.
     {
       name: "ud:node:precompress",
       apply: "build",

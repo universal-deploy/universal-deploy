@@ -35,9 +35,10 @@ export function resolveStaticOptions(input: StaticOptionsInput): ResolvedStaticO
   const dir = resolve(entryDir, effective);
 
   const bakedDir = typeof bakedStatic === "string" ? resolve(entryDir, bakedStatic) : undefined;
-  // Variants are only reconciled in the directory this build walked, so lookup is
-  // enabled only there. Comparison is exact: two spellings of one directory fall back
-  // to on-the-fly compression rather than risking variants no walk owns.
+  // Variants are only reconciled in the directory this build walked, so lookup is enabled
+  // only there. Both sides are already `resolve()`d, so `.`/`..` and separator differences
+  // compare equal; a case difference or a symlink alias does not, and falls back to
+  // on-the-fly compression rather than trusting variants no walk owns.
   const reconciled = bakedDir !== undefined && dir === bakedDir;
 
   return encodings && reconciled ? { dir, encodings } : { dir };

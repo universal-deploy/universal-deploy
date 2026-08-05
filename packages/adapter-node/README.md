@@ -1,4 +1,4 @@
-Wraps `@universal-deploy/store` entries with [srvx](https://srvx.h3.dev/) + [sirv](https://universal-middleware.dev/middlewares/sirv)
+Wraps `@universal-deploy/store` entries with [srvx](https://srvx.h3.dev/).
 
 ## `precompress`
 
@@ -6,6 +6,8 @@ Off by default. Emits `.br`/`.gz` beside eligible static assets at build time an
 files instead of compressing on every request.
 
 ```ts
+import { node } from "@universal-deploy/node/vite";
+
 node({ precompress: true })
 // or, with the defaults spelled out:
 node({
@@ -17,12 +19,14 @@ node({
 ```
 
 Applies to `.css`, `.htm`, `.html`, `.js`, `.json`, `.mjs`, `.svg`, `.txt`, `.wasm` and `.xml`,
-and only when the encoded form is smaller. On-the-fly compression stays on for everything else.
+and only when the encoded form is no larger than the original. On-the-fly compression
+stays on for everything else.
 
-- **Variants stay in sync with their sources.** Each build reconciles the `.br`/`.gz` beside
-  every file it visits: rewritten when the source changed, removed when the file no longer
-  qualifies. That is what keeps a rebuild into an existing directory from serving a previous
-  build's variant. If one cannot be removed, the build stops rather than leave it.
+- **Variants stay in sync with their sources.** For the extensions above, and for the
+  encodings you configured, each build rewrites the `.br`/`.gz` when the source changed and
+  removes it when the file no longer qualifies. That is what keeps a rebuild into an existing
+  directory from serving a previous build's variant. If one cannot be removed, the build stops
+  rather than leave it. Other extensions, other encodings, and `publicDir` files are untouched.
 - **`publicDir` files are yours.** Never compressed or cleaned up. A `.br` you ship in `public/`
   is still served; keeping it in step with its source is up to you.
 - **Runtime `static` wins.** Variant lookup is enabled only for the directory this build
