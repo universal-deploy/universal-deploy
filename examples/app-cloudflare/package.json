@@ -13,7 +13,7 @@
     "@cloudflare/vite-plugin": "^1.50.0",
     "@universal-deploy/e2e": "workspace:",
     "playwright": "^1.62.1",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "vite": "^8.2.0",
     "wrangler": "^4.118.0"
   },
