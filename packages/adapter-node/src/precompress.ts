@@ -116,9 +116,9 @@ function ownsVariantsFor(filePath: string, relPath: string, context: Precompress
 }
 
 /**
- * Whether this file is already reconciled. A later pass hashes the source and compares; it
- * verifies nothing on disk, because a build-time check cannot establish a property of a file
- * that is served long after the build exits.
+ * Whether this file is already reconciled. A later pass hashes the source and confirms the
+ * suffixes that pass wrote are still on disk; it does not read them, because whether a variant
+ * is still valid is a question about request time, not build time.
  */
 async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
   const key = lookupKey(source, resolved);

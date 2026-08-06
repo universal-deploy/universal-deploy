@@ -164,9 +164,9 @@ describe("repeat passes over one directory", () => {
     const first = await precompressDir(dir, ALL);
     expect(first.written).toBe(2);
 
-    // What `vite build --watch` does: empty the output directory, then rebuild byte-identical
-    // sources. The memo still holds those bytes, so a record that does not check its variants
-    // are on disk skips the whole tree and the build emits nothing at all.
+    // What a second `vite.build()` in one process does: empty the output directory, then rebuild
+    // byte-identical sources. The memo still holds those bytes, so a record that does not check
+    // its variants are on disk skips the whole tree and the build emits nothing at all.
     await rm(dir, { recursive: true, force: true });
     await mkdir(dir, { recursive: true });
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
