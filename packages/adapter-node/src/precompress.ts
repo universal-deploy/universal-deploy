@@ -237,8 +237,9 @@ async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPre
     if (await matchesRecord(filePath, resolved, memo.wrote)) return true;
   }
 
-  // A directory that was already correct on entry — an incremental rebuild — is recorded here
-  // too, so the environments after this one verify by hash rather than decoding again.
+  // For a directory that was already correct, this is the only place an entry is ever written:
+  // returning true here makes `processFile` return before reaching its own `remember`. Delete
+  // it and that state re-decodes on every later pass, having no other way to be recorded.
   const verified = await decodesToSource(filePath, source, resolved);
   if (verified) remember(filePath, source, resolved, verified);
   return verified !== null;
