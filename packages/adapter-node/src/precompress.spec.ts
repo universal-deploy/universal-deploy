@@ -159,6 +159,48 @@ describe("repeat passes over one directory", () => {
     expect((await readFile(join(dir, "app.js.br"))).toString()).toBe("not brotli");
   });
 
+  it("a later pass re-encodes nothing for bytes that earned no variant", async () => {
+    await writeFile(join(dir, "blob.wasm"), incompressible(2048));
+    const first = await precompressDir(dir, ALL);
+    expect(first.written).toBe(0);
+    // Nothing on disk to check, so only the memo can make this a skip. Planting variants the
+    // pass did not write proves it: a second pass leaves them exactly as found.
+    await writeFile(join(dir, "blob.wasm.br"), Buffer.from("planted"));
+    const second = await precompressDir(dir, ALL);
+    expect(second.written).toBe(0);
+    expect((await readFile(join(dir, "blob.wasm.br"))).toString()).toBe("planted");
+  });
+
+  it("skips on the variants a file actually earned, not the ones configured", async () => {
+    // brotli keeps this (its static dictionary catches the prefix); gzip comes out larger and
+    // is retired. The memo must then check `.br` alone — checking `.gz` too would find it
+    // missing and re-encode both on every later pass.
+    const partial = Buffer.concat([
+      Buffer.from('<!DOCTYPE html><html><head><meta charset="utf-8"><title>'),
+      incompressible(1024),
+    ]);
+    await writeFile(join(dir, "page.html"), partial);
+    await precompressDir(dir, ALL);
+    expect(await exists(join(dir, "page.html.br"))).toBe(true);
+    expect(await exists(join(dir, "page.html.gz"))).toBe(false);
+
+    await writeFile(join(dir, "page.html.br"), Buffer.from("planted"));
+    const second = await precompressDir(dir, ALL);
+    expect(second.written).toBe(0);
+    expect((await readFile(join(dir, "page.html.br"))).toString()).toBe("planted");
+  });
+
+  it("a pass configured with more encodings does not hit an earlier pass's memo", async () => {
+    const brOnly = resolvePrecompress({ encodings: ["br"] }) as ResolvedPrecompress;
+    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
+    await precompressDir(dir, brOnly);
+    expect(await exists(join(dir, "app.js.gz"))).toBe(false);
+    // Same bytes, so the digest matches; only the recorded configuration separates them.
+    const second = await precompressDir(dir, ALL);
+    expect(second.written).toBe(2);
+    expect(await exists(join(dir, "app.js.gz"))).toBe(true);
+  });
+
   it("re-emits when the variants were deleted after the pass that wrote them", async () => {
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
     await precompressDir(dir, ALL);

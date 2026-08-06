@@ -149,12 +149,24 @@ export interface PrecompressContext {
   passThrough?: ReadonlySet<string>;
 }
 
+interface Reconciled {
+  digest: string;
+  /** The configured encodings at the time, so a differently-configured pass cannot hit. */
+  under: string;
+  /**
+   * Suffixes the pass wrote. **Empty is a value, not a missing entry:** it records that these
+   * bytes yield no variant — a conclusion reached only by encoding at full quality, which is
+   * the most expensive thing the walk does and the one worth never repeating.
+   */
+  wrote: readonly string[];
+}
+
 /**
- * Source bytes this process has already reconciled, by absolute path. Keyed on **content**,
- * never on the path alone: a later environment may rewrite a file an earlier pass handled,
- * and a path-keyed memo would skip it and leave the earlier bytes' variants in place.
+ * What this process has already reconciled, by absolute path. Keyed on **content**, never on
+ * the path alone: a later environment may rewrite a file an earlier pass handled, and a
+ * path-keyed memo would skip it and leave the earlier bytes' variants in place.
  */
-const reconciled = new Map<string, string>();
+const reconciled = new Map<string, Reconciled>();
 
 /** Whether every configured variant decodes to exactly the identity beside it. A missing
  *  variant, a decode failure, or any difference means reconcile. */
@@ -173,9 +185,9 @@ async function decodesToSource(filePath: string, source: Buffer, resolved: Resol
 /** The memo says what we wrote, not what is on disk — so presence is still checked. Anything
  *  that removed a variant since (a cleaned output directory, a rebuild in the same process)
  *  falls through and re-emits. */
-async function variantsPresent(filePath: string, resolved: ResolvedPrecompress): Promise<boolean> {
-  for (const encoding of resolved.encodings) {
-    const there = await stat(filePath + CODECS[encoding].ext).then(
+async function allPresent(filePath: string, suffixes: readonly string[]): Promise<boolean> {
+  for (const suffix of suffixes) {
+    const there = await stat(filePath + suffix).then(
       () => true,
       () => false,
     );
@@ -185,23 +197,36 @@ async function variantsPresent(filePath: string, resolved: ResolvedPrecompress):
 }
 
 /**
- * Whether this file's variants are already correct. A memo hit costs one hash and one `stat`
- * per encoding; a miss falls through to decoding every variant, which is ~7x dearer per file
- * and is what every extra environment would otherwise pay for the whole asset set.
+ * Whether this file's variants are already correct. A memo hit costs one hash and a `stat`
+ * for each variant the pass wrote — none at all for bytes that yield no variant; a miss falls
+ * through to decoding every variant, which is what every extra environment would otherwise pay
+ * for the whole asset set.
  */
 async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
   const digest = createHash("sha256").update(source).digest("hex");
-  if (reconciled.get(filePath) === digest) return variantsPresent(filePath, resolved);
+  const memo = reconciled.get(filePath);
+  if (memo?.digest === digest && memo.under === resolved.encodings.join()) return allPresent(filePath, memo.wrote);
 
   const current = await decodesToSource(filePath, source, resolved);
-  if (current) reconciled.set(filePath, digest);
+  // Every configured variant just decoded to the source, so all of them are on disk.
+  if (current)
+    remember(
+      filePath,
+      source,
+      resolved,
+      resolved.encodings.map((e) => CODECS[e].ext),
+    );
   return current;
 }
 
-/** Record that these exact bytes were reconciled, so later passes skip on a hash instead of
- *  a decode. */
-function remember(filePath: string, source: Buffer): void {
-  reconciled.set(filePath, createHash("sha256").update(source).digest("hex"));
+/** Record what these exact bytes reconciled to, so later passes skip on a hash instead of a
+ *  decode — or, when nothing was written, without touching the disk at all. */
+function remember(filePath: string, source: Buffer, resolved: ResolvedPrecompress, wrote: readonly string[]): void {
+  reconciled.set(filePath, {
+    digest: createHash("sha256").update(source).digest("hex"),
+    under: resolved.encodings.join(),
+    wrote,
+  });
 }
 
 /** Whether the variants beside this file are ours to write and remove. */
@@ -210,15 +235,15 @@ function ownsVariantsFor(filePath: string, relPath: string, context: Precompress
   return !context.passThrough?.has(relPath);
 }
 
-/** Write the variants this build owes and remove the ones it does not, returning how many
- *  were written. */
+/** Write the variants this build owes and remove the ones it does not, returning the suffixes
+ *  written. */
 async function reconcile(
   filePath: string,
   source: Buffer,
   eligible: boolean,
   resolved: ResolvedPrecompress,
-): Promise<number> {
-  let written = 0;
+): Promise<string[]> {
+  const wrote: string[] = [];
   for (const encoding of resolved.encodings) {
     const codec = CODECS[encoding];
     const variantPath = filePath + codec.ext;
@@ -226,7 +251,7 @@ async function reconcile(
       const encoded = await codec.encode(source);
       if (notLarger(source, encoded)) {
         await writeFile(variantPath, encoded);
-        written++;
+        wrote.push(codec.ext);
         continue;
       }
     }
@@ -234,7 +259,7 @@ async function reconcile(
     // fails is not swallowed: it stops the build.
     await rm(variantPath, { force: true });
   }
-  return written;
+  return wrote;
 }
 
 async function processFile(
@@ -253,9 +278,9 @@ async function processFile(
   // lower threshold would survive.
   if (eligible && (await isCurrent(filePath, source, resolved))) return 0;
 
-  const written = await reconcile(filePath, source, eligible, resolved);
-  if (eligible) remember(filePath, source);
-  return written;
+  const wrote = await reconcile(filePath, source, eligible, resolved);
+  if (eligible) remember(filePath, source, resolved, wrote);
+  return wrote.length;
 }
 
 /**
