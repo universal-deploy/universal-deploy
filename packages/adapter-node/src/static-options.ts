@@ -18,6 +18,17 @@ export interface ResolvedStaticOptions {
   encodings?: Record<string, string>;
 }
 
+/** Whether to serve static files, from where, and whether variants may be looked up. */
+export function resolveStaticOptions(input: StaticOptionsInput): ResolvedStaticOptions | undefined {
+  const { entryDir, bakedStatic, runtimeStatic, encodings } = input;
+
+  const dir = servedDir(entryDir, bakedStatic, runtimeStatic);
+  if (dir === undefined) return undefined;
+
+  const serveVariants = encodings && servesThisBuildsOutput(entryDir, bakedStatic, dir);
+  return serveVariants ? { dir, encodings } : { dir };
+}
+
 /** Absolute directory to serve, or `undefined` when static serving is off. The server
  *  entry's own `static` overrides the hint baked at build time. */
 function servedDir(entryDir: string, baked: string | false, runtime: string | boolean | undefined): string | undefined {
@@ -30,15 +41,4 @@ function servedDir(entryDir: string, baked: string | false, runtime: string | bo
  *  from `entryDir`, so a relocated build still compares equal. */
 function servesThisBuildsOutput(entryDir: string, baked: string | false, dir: string): boolean {
   return typeof baked === "string" && dir === resolve(entryDir, baked);
-}
-
-/** Whether to serve static files, from where, and whether variants may be looked up. */
-export function resolveStaticOptions(input: StaticOptionsInput): ResolvedStaticOptions | undefined {
-  const { entryDir, bakedStatic, runtimeStatic, encodings } = input;
-
-  const dir = servedDir(entryDir, bakedStatic, runtimeStatic);
-  if (dir === undefined) return undefined;
-
-  const serveVariants = encodings && servesThisBuildsOutput(entryDir, bakedStatic, dir);
-  return serveVariants ? { dir, encodings } : { dir };
 }

@@ -5,14 +5,6 @@ import type { Fetchable } from "@universal-deploy/store";
 import { type FetchHandler, type ServerMiddleware, serve as serveSrvx } from "srvx";
 import { type ResolvedStaticOptions, resolveStaticOptions } from "./static-options.js";
 
-function assertFetchable(mod: unknown, id: string): Fetchable {
-  if (!mod || typeof mod !== "object") throw new Error(`Missing default export from ${id}`);
-  if ("default" in mod && mod.default) mod = mod.default;
-  if (!mod || typeof mod !== "object" || !("fetch" in mod) || typeof mod.fetch !== "function")
-    throw new Error(`Default export from ${id} must include a { fetch() } function`);
-  return mod as Fetchable;
-}
-
 async function startServer() {
   assertFetchable(userServerEntry, "virtual:ud:catch-all");
   const { static: runtimeStatic } = userServerEntry as unknown as FetchHandler & {
@@ -60,6 +52,14 @@ async function startServer() {
   await server.ready();
 
   userServerEntry.onReady?.(server);
+}
+
+function assertFetchable(mod: unknown, id: string): Fetchable {
+  if (!mod || typeof mod !== "object") throw new Error(`Missing default export from ${id}`);
+  if ("default" in mod && mod.default) mod = mod.default;
+  if (!mod || typeof mod !== "object" || !("fetch" in mod) || typeof mod.fetch !== "function")
+    throw new Error(`Default export from ${id} must include a { fetch() } function`);
+  return mod as Fetchable;
 }
 
 await startServer();

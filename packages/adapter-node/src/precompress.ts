@@ -4,41 +4,7 @@ import { extname, join, posix, sep } from "node:path";
 import { promisify } from "node:util";
 import { brotliCompress, brotliDecompress, constants, gunzip, gzip } from "node:zlib";
 
-const brotliAsync = promisify(brotliCompress);
-const gzipAsync = promisify(gzip);
-const brotliDecompressAsync = promisify(brotliDecompress);
-const gunzipAsync = promisify(gunzip);
-
 export type PrecompressEncoding = "br" | "gzip";
-
-interface Codec {
-  /** Suffix of the variant file, and the value srvx is handed to look one up. */
-  ext: string;
-  encode: (source: Buffer) => Promise<Buffer>;
-  decode: (bytes: Buffer) => Promise<Buffer>;
-}
-
-/** Everything one encoding needs — suffix, encode, decode — in one entry, checked against
- *  `PrecompressEncoding` so the table and the union cannot disagree. */
-const CODECS = {
-  br: {
-    ext: ".br",
-    encode: (source) =>
-      brotliAsync(source, {
-        params: {
-          // Build time, once — the whole point of not paying it per request.
-          [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY,
-          [constants.BROTLI_PARAM_SIZE_HINT]: source.length,
-        },
-      }),
-    decode: (bytes) => brotliDecompressAsync(bytes),
-  },
-  gzip: {
-    ext: ".gz",
-    encode: (source) => gzipAsync(source, { level: constants.Z_BEST_COMPRESSION }),
-    decode: (bytes) => gunzipAsync(bytes),
-  },
-} satisfies Record<PrecompressEncoding, Codec>;
 
 export interface PrecompressOptions {
   /**
@@ -62,16 +28,37 @@ export interface ResolvedPrecompress {
   threshold: number;
 }
 
-/**
- * Extensions srvx negotiates an encoding for: the entries of its `COMMON_MIME_TYPES`
- * whose type passes its `isCompressible()`. A variant outside this set can never be
- * served, so emitting one would be dead bytes on disk.
- */
-const NEGOTIABLE = new Set([".css", ".htm", ".html", ".js", ".json", ".mjs", ".svg", ".txt", ".wasm", ".xml"]);
+export interface PrecompressContext {
+  /** Paths under `publicDir`, relative to the served directory with `/` separators. They
+   *  are re-copied from source every build, so their variants are the user's. */
+  passThrough?: ReadonlySet<string>;
+}
 
-// `node:zlib`'s async calls run on libuv's threadpool, which defaults to 4 workers;
-// queueing past it buys no parallelism while multiplying peak memory.
-const CONCURRENCY = 4;
+/**
+ * Emit `.br`/`.gz` variants beside the eligible files under `dir`, and retire the
+ * current encodings' variants beside the ones that got none.
+ */
+export async function precompressDir(
+  dir: string,
+  resolved: ResolvedPrecompress,
+  context: PrecompressContext = {},
+): Promise<{ written: number }> {
+  const files = await collectFiles(dir);
+  const toRelative = relativeTo(dir);
+
+  // One cursor shared by every worker, so each file is handed out exactly once.
+  const queue = files[Symbol.iterator]();
+  let written = 0;
+  const worker = async (): Promise<void> => {
+    for (const filePath of queue) {
+      const count = await processFile(filePath, toRelative(filePath), resolved, context);
+      written += count;
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, files.length) }, worker));
+
+  return { written };
+}
 
 /** `undefined` when precompression is off — the single off-switch. */
 export function resolvePrecompress(
@@ -95,99 +82,78 @@ export function encodingsMap(resolved: ResolvedPrecompress): Record<string, stri
   return Object.fromEntries(resolved.encodings.map((name) => [name, CODECS[name].ext]));
 }
 
-/** A file can vanish between the walk listing it and this read. Only ENOENT is benign —
- *  reading any other error as "absent" would leave the variants beside it in place. */
-async function readIfPresent(path: string): Promise<Buffer | null> {
-  try {
-    return await readFile(path);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
-    throw error;
-  }
-}
-
-/** srvx compares no sizes: whatever variant is on disk is what it serves. */
-function notLarger(source: Buffer, variant: Buffer): boolean {
-  return variant.length <= source.length;
-}
-
-/** Every file under `dir`, as absolute paths. Nothing is filtered here — extensions are
- *  a per-file decision, never a traversal filter. */
-async function collectFiles(dir: string): Promise<string[]> {
-  const found: string[] = [];
-  const walk = async (current: string): Promise<void> => {
-    const entries = await readdir(current, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
-      // A directory can vanish mid-walk; anything else means the listing is not trustworthy.
-      if (error.code === "ENOENT") return [];
-      throw error;
-    });
-    for (const entry of entries) {
-      const full = join(current, entry.name);
-      if (entry.isDirectory()) await walk(full);
-      else if (entry.isFile()) found.push(full);
-    }
-  };
-  await walk(dir);
-  return found;
-}
-
-/** Maps absolute paths under `dir` to `dir`-relative, `/`-separated ones. */
-function relativeTo(dir: string): (file: string) => string {
-  const prefix = dir.endsWith(sep) ? dir.length : dir.length + 1;
-  return (file) => file.slice(prefix).split(sep).join(posix.sep);
-}
-
 /** Paths under `dir`, relative to it and with `/` separators. */
 export async function collectRelativeFiles(dir: string): Promise<Set<string>> {
   const files = await collectFiles(dir);
   return new Set(files.map(relativeTo(dir)));
 }
 
-export interface PrecompressContext {
-  /** Paths under `publicDir`, relative to the served directory with `/` separators. They
-   *  are re-copied from source every build, so their variants are the user's. */
-  passThrough?: ReadonlySet<string>;
+async function processFile(
+  filePath: string,
+  relPath: string,
+  resolved: ResolvedPrecompress,
+  context: PrecompressContext,
+): Promise<number> {
+  if (!ownsVariantsFor(filePath, relPath, context)) return 0;
+
+  const source = await readIfPresent(filePath);
+  if (!source) return 0;
+
+  const eligible = source.length >= resolved.threshold;
+  // Eligibility first: an ineligible file must reach `reconcile`, or a variant left by a
+  // lower threshold would survive.
+  if (eligible && (await isCurrent(filePath, source, resolved))) return 0;
+
+  const wrote = await reconcile(filePath, source, eligible, resolved);
+  if (eligible) remember(filePath, source, resolved, wrote);
+  return wrote.size;
 }
 
-interface Reconciled {
-  /** The source bytes. Compared first, so a changed file is a miss without reading a variant. */
-  digest: string;
-  /**
-   * One digest over the configured encodings and what each suffix held. A planted or altered
-   * variant misses because its own digest enters the fold. The empty marker buys the widening
-   * case: without a term for a suffix nothing was written to, a pass configured with one
-   * encoding and a pass configured with two that wrote only the first fold identically.
-   */
-  variants: string;
-}
-
-function digestOf(bytes: Buffer): string {
-  return createHash("sha256").update(bytes).digest("hex");
+/** Whether the variants beside this file are ours to write and remove. */
+function ownsVariantsFor(filePath: string, relPath: string, context: PrecompressContext): boolean {
+  if (!NEGOTIABLE.has(extname(filePath).toLowerCase())) return false;
+  return !context.passThrough?.has(relPath);
 }
 
 /**
- * Fold the configured encodings and each suffix's digest into one value. `held` returns the
- * digest of what a suffix holds, or `undefined` for nothing — and a digest is never empty, so
- * the empty marker cannot collide with one.
+ * Whether this file's variants are already correct. A memo hit reads each variant and hashes
+ * it; a miss decodes them instead. Hashing the stored representation is far cheaper than
+ * decompressing it, which is where the saving comes from — not from checking less.
  */
-function foldVariants(resolved: ResolvedPrecompress, held: (suffix: string) => string | undefined): string {
-  const composite = createHash("sha256");
+async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
+  const digest = digestOf(source);
+  const memo = reconciled.get(filePath);
+  // Source digest first: a changed file misses without reading a single variant.
+  if (memo?.digest === digest && (await matchesRecord(filePath, resolved, memo.variants))) return true;
+
+  // For a directory that was already correct, this is the only place an entry is ever written:
+  // returning true here makes `processFile` return before reaching its own `remember`. Delete
+  // it and that state re-decodes on every later pass, having no other way to be recorded.
+  const verified = await decodesToSource(filePath, source, resolved);
+  if (verified) remember(filePath, source, resolved, verified);
+  return verified !== null;
+}
+
+/**
+ * Whether every configured suffix still matches what the recorded pass left: the same bytes
+ * where one was written, and nothing at all where one was not.
+ *
+ * Both halves are load-bearing. srvx serves an adjacent variant without comparing it to the
+ * identity, so a variant that is present-but-altered, or present where reconciliation removed
+ * one, is wrong bytes on a live URL. A directory entry existing is not evidence it is ours.
+ */
+async function matchesRecord(filePath: string, resolved: ResolvedPrecompress, expected: string): Promise<boolean> {
+  const onDisk = new Map<string, string>();
   for (const encoding of resolved.encodings) {
-    composite
-      .update(encoding)
-      .update("\0")
-      .update(held(CODECS[encoding].ext) ?? "")
-      .update("\0");
+    const suffix = CODECS[encoding].ext;
+    // `readIfPresent`, not a swallowing catch: only ENOENT may count as absent. Reading
+    // EACCES or EIO as "nothing there" would make the absence proof vacuous on exactly the
+    // machines where it matters, and pass every test a healthy filesystem can run.
+    const bytes = await readIfPresent(filePath + suffix);
+    if (bytes) onDisk.set(suffix, digestOf(bytes));
   }
-  return composite.digest("hex");
+  return foldVariants(resolved, (suffix) => onDisk.get(suffix)) === expected;
 }
-
-/**
- * What this process has already reconciled, by absolute path. Keyed on **content**, never on
- * the path alone: a later environment may rewrite a file an earlier pass handled, and a
- * path-keyed memo would skip it and leave the earlier bytes' variants in place.
- */
-const reconciled = new Map<string, Reconciled>();
 
 /**
  * The digests of every configured variant, when each one decodes to exactly the identity
@@ -213,46 +179,6 @@ async function decodesToSource(
   return digests;
 }
 
-/**
- * Whether every configured suffix still matches what the recorded pass left: the same bytes
- * where one was written, and nothing at all where one was not.
- *
- * Both halves are load-bearing. srvx serves an adjacent variant without comparing it to the
- * identity, so a variant that is present-but-altered, or present where reconciliation removed
- * one, is wrong bytes on a live URL. A directory entry existing is not evidence it is ours.
- */
-async function matchesRecord(filePath: string, resolved: ResolvedPrecompress, expected: string): Promise<boolean> {
-  const onDisk = new Map<string, string>();
-  for (const encoding of resolved.encodings) {
-    const suffix = CODECS[encoding].ext;
-    // `readIfPresent`, not a swallowing catch: only ENOENT may count as absent. Reading
-    // EACCES or EIO as "nothing there" would make the absence proof vacuous on exactly the
-    // machines where it matters, and pass every test a healthy filesystem can run.
-    const bytes = await readIfPresent(filePath + suffix);
-    if (bytes) onDisk.set(suffix, digestOf(bytes));
-  }
-  return foldVariants(resolved, (suffix) => onDisk.get(suffix)) === expected;
-}
-
-/**
- * Whether this file's variants are already correct. A memo hit reads each variant and hashes
- * it; a miss decodes them instead. Hashing the stored representation is far cheaper than
- * decompressing it, which is where the saving comes from — not from checking less.
- */
-async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
-  const digest = digestOf(source);
-  const memo = reconciled.get(filePath);
-  // Source digest first: a changed file misses without reading a single variant.
-  if (memo?.digest === digest && (await matchesRecord(filePath, resolved, memo.variants))) return true;
-
-  // For a directory that was already correct, this is the only place an entry is ever written:
-  // returning true here makes `processFile` return before reaching its own `remember`. Delete
-  // it and that state re-decodes on every later pass, having no other way to be recorded.
-  const verified = await decodesToSource(filePath, source, resolved);
-  if (verified) remember(filePath, source, resolved, verified);
-  return verified !== null;
-}
-
 /** Record what these exact bytes reconciled to, so later passes verify by hash rather than by
  *  decode. */
 function remember(
@@ -265,12 +191,6 @@ function remember(
     digest: digestOf(source),
     variants: foldVariants(resolved, (suffix) => wrote.get(suffix)),
   });
-}
-
-/** Whether the variants beside this file are ours to write and remove. */
-function ownsVariantsFor(filePath: string, relPath: string, context: PrecompressContext): boolean {
-  if (!NEGOTIABLE.has(extname(filePath).toLowerCase())) return false;
-  return !context.passThrough?.has(relPath);
 }
 
 /** Write the variants this build owes and remove the ones it does not, returning the suffixes
@@ -302,49 +222,132 @@ async function reconcile(
   return wrote;
 }
 
-async function processFile(
-  filePath: string,
-  relPath: string,
-  resolved: ResolvedPrecompress,
-  context: PrecompressContext,
-): Promise<number> {
-  if (!ownsVariantsFor(filePath, relPath, context)) return 0;
+/** Every file under `dir`, as absolute paths. Nothing is filtered here — extensions are
+ *  a per-file decision, never a traversal filter. */
+async function collectFiles(dir: string): Promise<string[]> {
+  const found: string[] = [];
+  const walk = async (current: string): Promise<void> => {
+    const entries = await readdir(current, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
+      // A directory can vanish mid-walk; anything else means the listing is not trustworthy.
+      if (error.code === "ENOENT") return [];
+      throw error;
+    });
+    for (const entry of entries) {
+      const full = join(current, entry.name);
+      if (entry.isDirectory()) await walk(full);
+      else if (entry.isFile()) found.push(full);
+    }
+  };
+  await walk(dir);
+  return found;
+}
 
-  const source = await readIfPresent(filePath);
-  if (!source) return 0;
+/** Maps absolute paths under `dir` to `dir`-relative, `/`-separated ones. */
+function relativeTo(dir: string): (file: string) => string {
+  const prefix = dir.endsWith(sep) ? dir.length : dir.length + 1;
+  return (file) => file.slice(prefix).split(sep).join(posix.sep);
+}
 
-  const eligible = source.length >= resolved.threshold;
-  // Eligibility first: an ineligible file must reach `reconcile`, or a variant left by a
-  // lower threshold would survive.
-  if (eligible && (await isCurrent(filePath, source, resolved))) return 0;
+/** A file can vanish between the walk listing it and this read. Only ENOENT is benign —
+ *  reading any other error as "absent" would leave the variants beside it in place. */
+async function readIfPresent(path: string): Promise<Buffer | null> {
+  try {
+    return await readFile(path);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
+  }
+}
 
-  const wrote = await reconcile(filePath, source, eligible, resolved);
-  if (eligible) remember(filePath, source, resolved, wrote);
-  return wrote.size;
+/** srvx compares no sizes: whatever variant is on disk is what it serves. */
+function notLarger(source: Buffer, variant: Buffer): boolean {
+  return variant.length <= source.length;
+}
+
+function digestOf(bytes: Buffer): string {
+  return createHash("sha256").update(bytes).digest("hex");
 }
 
 /**
- * Emit `.br`/`.gz` variants beside the eligible files under `dir`, and retire the
- * current encodings' variants beside the ones that got none.
+ * Fold the configured encodings and each suffix's digest into one value. `held` returns the
+ * digest of what a suffix holds, or `undefined` for nothing — and a digest is never empty, so
+ * the empty marker cannot collide with one.
  */
-export async function precompressDir(
-  dir: string,
-  resolved: ResolvedPrecompress,
-  context: PrecompressContext = {},
-): Promise<{ written: number }> {
-  const files = await collectFiles(dir);
-  const toRelative = relativeTo(dir);
-
-  // One cursor shared by every worker, so each file is handed out exactly once.
-  const queue = files[Symbol.iterator]();
-  let written = 0;
-  const worker = async (): Promise<void> => {
-    for (const filePath of queue) {
-      const count = await processFile(filePath, toRelative(filePath), resolved, context);
-      written += count;
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, files.length) }, worker));
-
-  return { written };
+function foldVariants(resolved: ResolvedPrecompress, held: (suffix: string) => string | undefined): string {
+  const composite = createHash("sha256");
+  for (const encoding of resolved.encodings) {
+    composite
+      .update(encoding)
+      .update("\0")
+      .update(held(CODECS[encoding].ext) ?? "")
+      .update("\0");
+  }
+  return composite.digest("hex");
 }
+
+const brotliAsync = promisify(brotliCompress);
+
+const gzipAsync = promisify(gzip);
+
+const brotliDecompressAsync = promisify(brotliDecompress);
+
+const gunzipAsync = promisify(gunzip);
+
+interface Codec {
+  /** Suffix of the variant file, and the value srvx is handed to look one up. */
+  ext: string;
+  encode: (source: Buffer) => Promise<Buffer>;
+  decode: (bytes: Buffer) => Promise<Buffer>;
+}
+
+/** Everything one encoding needs — suffix, encode, decode — in one entry, checked against
+ *  `PrecompressEncoding` so the table and the union cannot disagree. */
+const CODECS = {
+  br: {
+    ext: ".br",
+    encode: (source) =>
+      brotliAsync(source, {
+        params: {
+          // Build time, once — the whole point of not paying it per request.
+          [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY,
+          [constants.BROTLI_PARAM_SIZE_HINT]: source.length,
+        },
+      }),
+    decode: (bytes) => brotliDecompressAsync(bytes),
+  },
+  gzip: {
+    ext: ".gz",
+    encode: (source) => gzipAsync(source, { level: constants.Z_BEST_COMPRESSION }),
+    decode: (bytes) => gunzipAsync(bytes),
+  },
+} satisfies Record<PrecompressEncoding, Codec>;
+
+/**
+ * Extensions srvx negotiates an encoding for: the entries of its `COMMON_MIME_TYPES`
+ * whose type passes its `isCompressible()`. A variant outside this set can never be
+ * served, so emitting one would be dead bytes on disk.
+ */
+const NEGOTIABLE = new Set([".css", ".htm", ".html", ".js", ".json", ".mjs", ".svg", ".txt", ".wasm", ".xml"]);
+
+// `node:zlib`'s async calls run on libuv's threadpool, which defaults to 4 workers;
+// queueing past it buys no parallelism while multiplying peak memory.
+const CONCURRENCY = 4;
+
+interface Reconciled {
+  /** The source bytes. Compared first, so a changed file is a miss without reading a variant. */
+  digest: string;
+  /**
+   * One digest over the configured encodings and what each suffix held. A planted or altered
+   * variant misses because its own digest enters the fold. The empty marker buys the widening
+   * case: without a term for a suffix nothing was written to, a pass configured with one
+   * encoding and a pass configured with two that wrote only the first fold identically.
+   */
+  variants: string;
+}
+
+/**
+ * What this process has already reconciled, by absolute path. Keyed on **content**, never on
+ * the path alone: a later environment may rewrite a file an earlier pass handled, and a
+ * path-keyed memo would skip it and leave the earlier bytes' variants in place.
+ */
+const reconciled = new Map<string, Reconciled>();
