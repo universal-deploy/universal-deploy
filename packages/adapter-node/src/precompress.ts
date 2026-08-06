@@ -246,7 +246,7 @@ async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPre
 }
 
 /** Record what these exact bytes reconciled to, so later passes verify by hash rather than by
- *  decode. Only `reconcile` records: it is the one place that knows what was written. */
+ *  decode. */
 function remember(
   filePath: string,
   source: Buffer,
