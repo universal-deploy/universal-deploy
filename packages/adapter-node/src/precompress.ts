@@ -150,19 +150,36 @@ export interface PrecompressContext {
 }
 
 interface Reconciled {
+  /** The source bytes. Compared first, so a changed file is a miss without reading a variant. */
   digest: string;
-  /** The configured encodings at the time, so a differently-configured pass cannot hit. */
-  under: string;
   /**
-   * Digest of the bytes written for each suffix. A configured suffix **absent from this map**
-   * was deliberately not written, and a later pass must prove it is still absent — an entry
-   * existing is not evidence the entry is ours.
+   * One digest over the configured encodings and what each suffix held. A planted or altered
+   * variant misses because its own digest enters the fold. The empty marker buys the widening
+   * case: without a term for a suffix nothing was written to, a pass configured with one
+   * encoding and a pass configured with two that wrote only the first fold identically.
    */
-  wrote: ReadonlyMap<string, string>;
+  variants: string;
 }
 
 function digestOf(bytes: Buffer): string {
   return createHash("sha256").update(bytes).digest("hex");
+}
+
+/**
+ * Fold the configured encodings and each suffix's digest into one value. `held` returns the
+ * digest of what a suffix holds, or `undefined` for nothing — and a digest is never empty, so
+ * the empty marker cannot collide with one.
+ */
+function foldVariants(resolved: ResolvedPrecompress, held: (suffix: string) => string | undefined): string {
+  const composite = createHash("sha256");
+  for (const encoding of resolved.encodings) {
+    composite
+      .update(encoding)
+      .update("\0")
+      .update(held(CODECS[encoding].ext) ?? "")
+      .update("\0");
+  }
+  return composite.digest("hex");
 }
 
 /**
@@ -204,25 +221,17 @@ async function decodesToSource(
  * identity, so a variant that is present-but-altered, or present where reconciliation removed
  * one, is wrong bytes on a live URL. A directory entry existing is not evidence it is ours.
  */
-async function matchesRecord(
-  filePath: string,
-  resolved: ResolvedPrecompress,
-  wrote: ReadonlyMap<string, string>,
-): Promise<boolean> {
+async function matchesRecord(filePath: string, resolved: ResolvedPrecompress, expected: string): Promise<boolean> {
+  const onDisk = new Map<string, string>();
   for (const encoding of resolved.encodings) {
     const suffix = CODECS[encoding].ext;
     // `readIfPresent`, not a swallowing catch: only ENOENT may count as absent. Reading
     // EACCES or EIO as "nothing there" would make the absence proof vacuous on exactly the
     // machines where it matters, and pass every test a healthy filesystem can run.
     const bytes = await readIfPresent(filePath + suffix);
-    const expected = wrote.get(suffix);
-    if (expected === undefined) {
-      if (bytes) return false;
-    } else if (!bytes || digestOf(bytes) !== expected) {
-      return false;
-    }
+    if (bytes) onDisk.set(suffix, digestOf(bytes));
   }
-  return true;
+  return foldVariants(resolved, (suffix) => onDisk.get(suffix)) === expected;
 }
 
 /**
@@ -233,9 +242,8 @@ async function matchesRecord(
 async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
   const digest = digestOf(source);
   const memo = reconciled.get(filePath);
-  if (memo?.digest === digest && memo.under === resolved.encodings.join()) {
-    if (await matchesRecord(filePath, resolved, memo.wrote)) return true;
-  }
+  // Source digest first: a changed file misses without reading a single variant.
+  if (memo?.digest === digest && (await matchesRecord(filePath, resolved, memo.variants))) return true;
 
   // For a directory that was already correct, this is the only place an entry is ever written:
   // returning true here makes `processFile` return before reaching its own `remember`. Delete
@@ -253,7 +261,10 @@ function remember(
   resolved: ResolvedPrecompress,
   wrote: ReadonlyMap<string, string>,
 ): void {
-  reconciled.set(filePath, { digest: digestOf(source), under: resolved.encodings.join(), wrote });
+  reconciled.set(filePath, {
+    digest: digestOf(source),
+    variants: foldVariants(resolved, (suffix) => wrote.get(suffix)),
+  });
 }
 
 /** Whether the variants beside this file are ours to write and remove. */
