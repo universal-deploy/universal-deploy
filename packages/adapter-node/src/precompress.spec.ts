@@ -148,33 +148,32 @@ describe("repeat passes over one directory", () => {
     expect((await stat(join(dir, "app.js.br"))).mtimeMs).toBe(backdated);
   });
 
-  it("a later pass over unchanged bytes never reads the variants", async () => {
+  it("repairs a variant altered between passes", async () => {
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
     await precompressDir(dir, ALL);
-    // Corrupt the variant. Decoding it would fail and force a rewrite, so its survival is
-    // what proves the second pass skipped on the memo instead of reading anything.
+    // srvx serves whatever sits beside the identity without comparing it, so bytes that are
+    // not ours are wrong bytes on a live URL. Recording that we wrote here is not evidence
+    // that what is here now is what we wrote.
     await writeFile(join(dir, "app.js.br"), Buffer.from("not brotli"));
     const second = await precompressDir(dir, ALL);
-    expect(second.written).toBe(0);
-    expect((await readFile(join(dir, "app.js.br"))).toString()).toBe("not brotli");
+    expect(second.written).toBe(2);
+    expect(brotliDecompressSync(await readFile(join(dir, "app.js.br"))).toString()).toBe(COMPRESSIBLE);
   });
 
-  it("a later pass re-encodes nothing for bytes that earned no variant", async () => {
+  it("removes a variant planted beside bytes that earned none", async () => {
     await writeFile(join(dir, "blob.wasm"), incompressible(2048));
     const first = await precompressDir(dir, ALL);
     expect(first.written).toBe(0);
-    // Nothing on disk to check, so only the memo can make this a skip. Planting variants the
-    // pass did not write proves it: a second pass leaves them exactly as found.
+    // The empty record is the case a presence check answers vacuously: there is nothing to
+    // find present, so only proving absence catches this.
     await writeFile(join(dir, "blob.wasm.br"), Buffer.from("planted"));
-    const second = await precompressDir(dir, ALL);
-    expect(second.written).toBe(0);
-    expect((await readFile(join(dir, "blob.wasm.br"))).toString()).toBe("planted");
+    await precompressDir(dir, ALL);
+    expect(await exists(join(dir, "blob.wasm.br"))).toBe(false);
   });
 
-  it("skips on the variants a file actually earned, not the ones configured", async () => {
+  it("verifies the variants a file earned and the absence of the ones it did not", async () => {
     // brotli keeps this (its static dictionary catches the prefix); gzip comes out larger and
-    // is retired. The memo must then check `.br` alone — checking `.gz` too would find it
-    // missing and re-encode both on every later pass.
+    // is retired. Both halves of the record are then live at once.
     const partial = Buffer.concat([
       Buffer.from('<!DOCTYPE html><html><head><meta charset="utf-8"><title>'),
       incompressible(1024),
@@ -184,10 +183,20 @@ describe("repeat passes over one directory", () => {
     expect(await exists(join(dir, "page.html.br"))).toBe(true);
     expect(await exists(join(dir, "page.html.gz"))).toBe(false);
 
-    await writeFile(join(dir, "page.html.br"), Buffer.from("planted"));
-    const second = await precompressDir(dir, ALL);
-    expect(second.written).toBe(0);
-    expect((await readFile(join(dir, "page.html.br"))).toString()).toBe("planted");
+    await writeFile(join(dir, "page.html.gz"), Buffer.from("planted"));
+    await precompressDir(dir, ALL);
+    expect(await exists(join(dir, "page.html.gz"))).toBe(false);
+    expect(brotliDecompressSync(await readFile(join(dir, "page.html.br")))).toEqual(partial);
+  });
+
+  it("stops the build when a variant cannot be read, rather than calling it absent", async () => {
+    await writeFile(join(dir, "blob.wasm"), incompressible(2048));
+    await precompressDir(dir, ALL);
+    // Unreadable for a reason that is not ENOENT. Treating it as absent would satisfy the
+    // absence proof vacuously and skip — which is the fail-open class U5c closed once already.
+    await mkdir(join(dir, "blob.wasm.br"));
+    await writeFile(join(dir, "blob.wasm.br", "blocker.txt"), "not a variant");
+    await expect(precompressDir(dir, ALL)).rejects.toThrow();
   });
 
   it("a pass configured with more encodings does not hit an earlier pass's memo", async () => {

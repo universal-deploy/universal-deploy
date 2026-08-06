@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { extname, join, posix, sep } from "node:path";
 import { promisify } from "node:util";
 import { brotliCompress, brotliDecompress, constants, gunzip, gzip } from "node:zlib";
@@ -154,11 +154,15 @@ interface Reconciled {
   /** The configured encodings at the time, so a differently-configured pass cannot hit. */
   under: string;
   /**
-   * Suffixes the pass wrote. **Empty is a value, not a missing entry:** it records that these
-   * bytes yield no variant — a conclusion reached only by encoding at full quality, which is
-   * the most expensive thing the walk does and the one worth never repeating.
+   * Digest of the bytes written for each suffix. A configured suffix **absent from this map**
+   * was deliberately not written, and a later pass must prove it is still absent — an entry
+   * existing is not evidence the entry is ours.
    */
-  wrote: readonly string[];
+  wrote: ReadonlyMap<string, string>;
+}
+
+function digestOf(bytes: Buffer): string {
+  return createHash("sha256").update(bytes).digest("hex");
 }
 
 /**
@@ -168,65 +172,87 @@ interface Reconciled {
  */
 const reconciled = new Map<string, Reconciled>();
 
-/** Whether every configured variant decodes to exactly the identity beside it. A missing
- *  variant, a decode failure, or any difference means reconcile. */
-async function decodesToSource(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
+/**
+ * The digests of every configured variant, when each one decodes to exactly the identity
+ * beside it — `null` when any is missing, undecodable, or different. Returning the digests
+ * rather than a flag lets a directory that was already correct be recorded without a second
+ * read: the bytes were in hand anyway.
+ */
+async function decodesToSource(
+  filePath: string,
+  source: Buffer,
+  resolved: ResolvedPrecompress,
+): Promise<Map<string, string> | null> {
+  const digests = new Map<string, string>();
   for (const encoding of resolved.encodings) {
     const codec = CODECS[encoding];
     // Unreadable for any reason means not usable as-is — the reconcile loop then deals with it.
     const bytes = await readFile(filePath + codec.ext).catch(() => null);
-    if (!bytes || !notLarger(source, bytes)) return false;
+    if (!bytes || !notLarger(source, bytes)) return null;
     const decoded = await codec.decode(bytes).catch(() => null);
-    if (!decoded || !decoded.equals(source)) return false;
+    if (!decoded || !decoded.equals(source)) return null;
+    digests.set(codec.ext, digestOf(bytes));
   }
-  return true;
+  return digests;
 }
 
-/** The memo says what we wrote, not what is on disk — so presence is still checked. Anything
- *  that removed a variant since (a cleaned output directory, a rebuild in the same process)
- *  falls through and re-emits. */
-async function allPresent(filePath: string, suffixes: readonly string[]): Promise<boolean> {
-  for (const suffix of suffixes) {
-    const there = await stat(filePath + suffix).then(
-      () => true,
-      () => false,
-    );
-    if (!there) return false;
+/**
+ * Whether every configured suffix still matches what the recorded pass left: the same bytes
+ * where one was written, and nothing at all where one was not.
+ *
+ * Both halves are load-bearing. srvx serves an adjacent variant without comparing it to the
+ * identity, so a variant that is present-but-altered, or present where reconciliation removed
+ * one, is wrong bytes on a live URL. A directory entry existing is not evidence it is ours.
+ */
+async function matchesRecord(
+  filePath: string,
+  resolved: ResolvedPrecompress,
+  wrote: ReadonlyMap<string, string>,
+): Promise<boolean> {
+  for (const encoding of resolved.encodings) {
+    const suffix = CODECS[encoding].ext;
+    // `readIfPresent`, not a swallowing catch: only ENOENT may count as absent. Reading
+    // EACCES or EIO as "nothing there" would make the absence proof vacuous on exactly the
+    // machines where it matters, and pass every test a healthy filesystem can run.
+    const bytes = await readIfPresent(filePath + suffix);
+    const expected = wrote.get(suffix);
+    if (expected === undefined) {
+      if (bytes) return false;
+    } else if (!bytes || digestOf(bytes) !== expected) {
+      return false;
+    }
   }
   return true;
 }
 
 /**
- * Whether this file's variants are already correct. A memo hit costs one hash and a `stat`
- * for each variant the pass wrote — none at all for bytes that yield no variant; a miss falls
- * through to decoding every variant, which is what every extra environment would otherwise pay
- * for the whole asset set.
+ * Whether this file's variants are already correct. A memo hit reads each variant and hashes
+ * it; a miss decodes them instead. Hashing the stored representation is far cheaper than
+ * decompressing it, which is where the saving comes from — not from checking less.
  */
 async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
-  const digest = createHash("sha256").update(source).digest("hex");
+  const digest = digestOf(source);
   const memo = reconciled.get(filePath);
-  if (memo?.digest === digest && memo.under === resolved.encodings.join()) return allPresent(filePath, memo.wrote);
+  if (memo?.digest === digest && memo.under === resolved.encodings.join()) {
+    if (await matchesRecord(filePath, resolved, memo.wrote)) return true;
+  }
 
-  const current = await decodesToSource(filePath, source, resolved);
-  // Every configured variant just decoded to the source, so all of them are on disk.
-  if (current)
-    remember(
-      filePath,
-      source,
-      resolved,
-      resolved.encodings.map((e) => CODECS[e].ext),
-    );
-  return current;
+  // A directory that was already correct on entry — an incremental rebuild — is recorded here
+  // too, so the environments after this one verify by hash rather than decoding again.
+  const verified = await decodesToSource(filePath, source, resolved);
+  if (verified) remember(filePath, source, resolved, verified);
+  return verified !== null;
 }
 
-/** Record what these exact bytes reconciled to, so later passes skip on a hash instead of a
- *  decode — or, when nothing was written, without touching the disk at all. */
-function remember(filePath: string, source: Buffer, resolved: ResolvedPrecompress, wrote: readonly string[]): void {
-  reconciled.set(filePath, {
-    digest: createHash("sha256").update(source).digest("hex"),
-    under: resolved.encodings.join(),
-    wrote,
-  });
+/** Record what these exact bytes reconciled to, so later passes verify by hash rather than by
+ *  decode. Only `reconcile` records: it is the one place that knows what was written. */
+function remember(
+  filePath: string,
+  source: Buffer,
+  resolved: ResolvedPrecompress,
+  wrote: ReadonlyMap<string, string>,
+): void {
+  reconciled.set(filePath, { digest: digestOf(source), under: resolved.encodings.join(), wrote });
 }
 
 /** Whether the variants beside this file are ours to write and remove. */
@@ -242,8 +268,8 @@ async function reconcile(
   source: Buffer,
   eligible: boolean,
   resolved: ResolvedPrecompress,
-): Promise<string[]> {
-  const wrote: string[] = [];
+): Promise<Map<string, string>> {
+  const wrote = new Map<string, string>();
   for (const encoding of resolved.encodings) {
     const codec = CODECS[encoding];
     const variantPath = filePath + codec.ext;
@@ -251,7 +277,9 @@ async function reconcile(
       const encoded = await codec.encode(source);
       if (notLarger(source, encoded)) {
         await writeFile(variantPath, encoded);
-        wrote.push(codec.ext);
+        // Digested here, while the buffer is already in hand: free at write time, and it is
+        // what lets a later pass verify by hash instead of by decode.
+        wrote.set(codec.ext, digestOf(encoded));
         continue;
       }
     }
@@ -280,7 +308,7 @@ async function processFile(
 
   const wrote = await reconcile(filePath, source, eligible, resolved);
   if (eligible) remember(filePath, source, resolved, wrote);
-  return wrote.length;
+  return wrote.size;
 }
 
 /**
