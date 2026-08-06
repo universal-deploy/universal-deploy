@@ -1,4 +1,5 @@
-import { readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { extname, join, posix, sep } from "node:path";
 import { promisify } from "node:util";
 import { brotliCompress, brotliDecompress, constants, gunzip, gzip } from "node:zlib";
@@ -148,9 +149,16 @@ export interface PrecompressContext {
   passThrough?: ReadonlySet<string>;
 }
 
+/**
+ * Source bytes this process has already reconciled, by absolute path. Keyed on **content**,
+ * never on the path alone: a later environment may rewrite a file an earlier pass handled,
+ * and a path-keyed memo would skip it and leave the earlier bytes' variants in place.
+ */
+const reconciled = new Map<string, string>();
+
 /** Whether every configured variant decodes to exactly the identity beside it. A missing
  *  variant, a decode failure, or any difference means reconcile. */
-async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
+async function decodesToSource(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
   for (const encoding of resolved.encodings) {
     const codec = CODECS[encoding];
     // Unreadable for any reason means not usable as-is — the reconcile loop then deals with it.
@@ -160,6 +168,40 @@ async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPre
     if (!decoded || !decoded.equals(source)) return false;
   }
   return true;
+}
+
+/** The memo says what we wrote, not what is on disk — so presence is still checked. Anything
+ *  that removed a variant since (a cleaned output directory, a rebuild in the same process)
+ *  falls through and re-emits. */
+async function variantsPresent(filePath: string, resolved: ResolvedPrecompress): Promise<boolean> {
+  for (const encoding of resolved.encodings) {
+    const there = await stat(filePath + CODECS[encoding].ext).then(
+      () => true,
+      () => false,
+    );
+    if (!there) return false;
+  }
+  return true;
+}
+
+/**
+ * Whether this file's variants are already correct. A memo hit costs one hash and one `stat`
+ * per encoding; a miss falls through to decoding every variant, which is ~7x dearer per file
+ * and is what every extra environment would otherwise pay for the whole asset set.
+ */
+async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
+  const digest = createHash("sha256").update(source).digest("hex");
+  if (reconciled.get(filePath) === digest) return variantsPresent(filePath, resolved);
+
+  const current = await decodesToSource(filePath, source, resolved);
+  if (current) reconciled.set(filePath, digest);
+  return current;
+}
+
+/** Record that these exact bytes were reconciled, so later passes skip on a hash instead of
+ *  a decode. */
+function remember(filePath: string, source: Buffer): void {
+  reconciled.set(filePath, createHash("sha256").update(source).digest("hex"));
 }
 
 /** Whether the variants beside this file are ours to write and remove. */
@@ -211,7 +253,9 @@ async function processFile(
   // lower threshold would survive.
   if (eligible && (await isCurrent(filePath, source, resolved))) return 0;
 
-  return reconcile(filePath, source, eligible, resolved);
+  const written = await reconcile(filePath, source, eligible, resolved);
+  if (eligible) remember(filePath, source);
+  return written;
 }
 
 /**

@@ -148,6 +148,29 @@ describe("repeat passes over one directory", () => {
     expect((await stat(join(dir, "app.js.br"))).mtimeMs).toBe(backdated);
   });
 
+  it("a later pass over unchanged bytes never reads the variants", async () => {
+    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
+    await precompressDir(dir, ALL);
+    // Corrupt the variant. Decoding it would fail and force a rewrite, so its survival is
+    // what proves the second pass skipped on the memo instead of reading anything.
+    await writeFile(join(dir, "app.js.br"), Buffer.from("not brotli"));
+    const second = await precompressDir(dir, ALL);
+    expect(second.written).toBe(0);
+    expect((await readFile(join(dir, "app.js.br"))).toString()).toBe("not brotli");
+  });
+
+  it("re-emits when the variants were deleted after the pass that wrote them", async () => {
+    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
+    await precompressDir(dir, ALL);
+    // A cleaned output directory, or a second build in the same process: the memo still
+    // holds these bytes, so only checking the variants are there catches it.
+    await rm(join(dir, "app.js.br"));
+    await rm(join(dir, "app.js.gz"));
+    const second = await precompressDir(dir, ALL);
+    expect(second.written).toBe(2);
+    expect(await exists(join(dir, "app.js.br"))).toBe(true);
+  });
+
   it("a file written between passes is still covered", async () => {
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
     await precompressDir(dir, ALL);
