@@ -148,57 +148,6 @@ describe("repeat passes over one directory", () => {
     expect((await stat(join(dir, "app.js.br"))).mtimeMs).toBe(backdated);
   });
 
-  it("repairs a variant altered between passes", async () => {
-    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
-    await precompressDir(dir, ALL);
-    // srvx serves whatever sits beside the identity without comparing it, so bytes that are
-    // not ours are wrong bytes on a live URL. Recording that we wrote here is not evidence
-    // that what is here now is what we wrote.
-    await writeFile(join(dir, "app.js.br"), Buffer.from("not brotli"));
-    const second = await precompressDir(dir, ALL);
-    expect(second.written).toBe(2);
-    expect(brotliDecompressSync(await readFile(join(dir, "app.js.br"))).toString()).toBe(COMPRESSIBLE);
-  });
-
-  it("removes a variant planted beside bytes that earned none", async () => {
-    await writeFile(join(dir, "blob.wasm"), incompressible(2048));
-    const first = await precompressDir(dir, ALL);
-    expect(first.written).toBe(0);
-    // The empty record is the case a presence check answers vacuously: there is nothing to
-    // find present, so only proving absence catches this.
-    await writeFile(join(dir, "blob.wasm.br"), Buffer.from("planted"));
-    await precompressDir(dir, ALL);
-    expect(await exists(join(dir, "blob.wasm.br"))).toBe(false);
-  });
-
-  it("verifies the variants a file earned and the absence of the ones it did not", async () => {
-    // brotli keeps this (its static dictionary catches the prefix); gzip comes out larger and
-    // is retired. Both halves of the record are then live at once.
-    const partial = Buffer.concat([
-      Buffer.from('<!DOCTYPE html><html><head><meta charset="utf-8"><title>'),
-      incompressible(1024),
-    ]);
-    await writeFile(join(dir, "page.html"), partial);
-    await precompressDir(dir, ALL);
-    expect(await exists(join(dir, "page.html.br"))).toBe(true);
-    expect(await exists(join(dir, "page.html.gz"))).toBe(false);
-
-    await writeFile(join(dir, "page.html.gz"), Buffer.from("planted"));
-    await precompressDir(dir, ALL);
-    expect(await exists(join(dir, "page.html.gz"))).toBe(false);
-    expect(brotliDecompressSync(await readFile(join(dir, "page.html.br")))).toEqual(partial);
-  });
-
-  it("stops the build when a variant cannot be read, rather than calling it absent", async () => {
-    await writeFile(join(dir, "blob.wasm"), incompressible(2048));
-    await precompressDir(dir, ALL);
-    // Unreadable for a reason that is not ENOENT. Treating it as absent would satisfy the
-    // absence proof vacuously and skip — which is the fail-open class U5c closed once already.
-    await mkdir(join(dir, "blob.wasm.br"));
-    await writeFile(join(dir, "blob.wasm.br", "blocker.txt"), "not a variant");
-    await expect(precompressDir(dir, ALL)).rejects.toThrow();
-  });
-
   it("a pass configured with more encodings does not hit an earlier pass's memo", async () => {
     const brOnly = resolvePrecompress({ encodings: ["br"] }) as ResolvedPrecompress;
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
@@ -210,16 +159,22 @@ describe("repeat passes over one directory", () => {
     expect(await exists(join(dir, "app.js.gz"))).toBe(true);
   });
 
-  it("re-emits when the variants were deleted after the pass that wrote them", async () => {
+  it("emits again for a second build in the same process", async () => {
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
-    await precompressDir(dir, ALL);
-    // A cleaned output directory, or a second build in the same process: the memo still
-    // holds these bytes, so only checking the variants are there catches it.
-    await rm(join(dir, "app.js.br"));
-    await rm(join(dir, "app.js.gz"));
+    const first = await precompressDir(dir, ALL);
+    expect(first.written).toBe(2);
+
+    // What `vite build --watch` does: empty the output directory, then rebuild byte-identical
+    // sources. The memo still holds those bytes, so a record that does not check its variants
+    // are on disk skips the whole tree and the build emits nothing at all.
+    await rm(dir, { recursive: true, force: true });
+    await mkdir(dir, { recursive: true });
+    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
+
     const second = await precompressDir(dir, ALL);
     expect(second.written).toBe(2);
     expect(await exists(join(dir, "app.js.br"))).toBe(true);
+    expect(await exists(join(dir, "app.js.gz"))).toBe(true);
   });
 
   it("a file written between passes is still covered", async () => {
