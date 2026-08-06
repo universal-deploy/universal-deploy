@@ -19,8 +19,8 @@ node({
 ```
 
 Eligible: `.css`, `.htm`, `.html`, `.js`, `.json`, `.mjs`, `.svg`, `.txt`, `.wasm` and `.xml`, at
-or above `threshold`, when the encoded form is no larger. Everything else is compressed per
-request, as before.
+or above `threshold`, when the encoded form is no larger. Everything else is left to srvx's own
+static handling, as before.
 
 Variants track their sources: a file that earns one has it, a file that no longer does has it
 removed, and a removal that fails stops the build. Files in `publicDir` are copied as-is: the build creates no
@@ -28,6 +28,6 @@ removed, and a removal that fails stops the build. Files in `publicDir` are copi
 in step with its source is yours.
 
 Not covered: a runtime `static` pointing anywhere other than the directory this build
-precompressed, and a client built separately without `precompress` — both fall back to
-per-request compression; and pages written by a pre-render step that runs no Vite build.
+precompressed, and a client built separately without `precompress` — both fall back to srvx's
+own static handling; and pages written by a pre-render step that runs no Vite build.
 Variants left behind by a removed encoding are never looked up.
