@@ -15,8 +15,8 @@ export interface PrecompressOptions {
    */
   encodings?: PrecompressEncoding[];
   /**
-   * Minimum size, in bytes, of the original file. No upper bound: precompression is
-   * the only way to compress a file past srvx's 10 MiB on-the-fly ceiling.
+   * Minimum size, in bytes, of the original file. No upper bound — unlike srvx's on-the-fly
+   * path, precompression has no 10 MiB ceiling.
    *
    * @default 1024
    */
@@ -116,9 +116,9 @@ function ownsVariantsFor(filePath: string, relPath: string, context: Precompress
 }
 
 /**
- * Whether this file is already reconciled. A later pass hashes the source and confirms the
- * suffixes that pass wrote are still on disk; it does not read them, because whether a variant
- * is still valid is a question about request time, not build time.
+ * Whether this file is already reconciled. Against a matching record the source is hashed and
+ * the suffixes that pass wrote are confirmed present — the variants themselves are not read.
+ * Without one, `decodesToSource` reads and compares them, which is what seeds the record.
  */
 async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
   const key = lookupKey(source, resolved);
