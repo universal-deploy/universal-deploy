@@ -289,7 +289,7 @@ async function reconcile(
       const encoded = await codec.encode(source);
       if (notLarger(source, encoded)) {
         await writeFile(variantPath, encoded);
-        // Digested here, while the buffer is already in hand: free at write time, and it is
+        // Digested here, while the buffer is already in hand — no second read — and it is
         // what lets a later pass verify by hash instead of by decode.
         wrote.set(codec.ext, digestOf(encoded));
         continue;

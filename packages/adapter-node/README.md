@@ -22,7 +22,7 @@ Eligible: `.css`, `.htm`, `.html`, `.js`, `.json`, `.mjs`, `.svg`, `.txt`, `.was
 or above `threshold`, when the encoded form is no larger. Everything else is compressed per
 request, as before.
 
-Each build rewrites the variants it owns and deletes the ones a file no longer earns, so
+Each build verifies or rewrites the variants it owns and deletes the ones a file no longer earns, so
 rebuilding into an existing directory cannot serve a stale variant it created; a variant it
 cannot delete fails the build. Files in `publicDir` are copied as-is: the build creates no
 `.br`/`.gz` for them and deletes none. A variant you ship beside one is still served — keeping it
