@@ -78,6 +78,13 @@ const exists = async (path: string) => {
   }
 };
 
+/** A second instance of the module under test: the query makes the loader treat it as a distinct
+ *  specifier, which is what a second copy on disk is. */
+function loadSecondCopy(): Promise<typeof import("./precompress.js")> {
+  const distinctSpecifier = "./precompress.js?copy=2";
+  return import(distinctSpecifier);
+}
+
 async function request(options: ResolvedStaticOptions, encoding: string) {
   const middleware = staticMiddleware(options);
   return middleware(
@@ -183,6 +190,16 @@ describe("repeat passes over one directory", () => {
     expect(second.written).toBe(2);
     expect(await exists(join(dir, "app.js.br"))).toBe(true);
     expect(await exists(join(dir, "app.js.gz"))).toBe(true);
+  });
+
+  it("a second copy of this module shares the memo", async () => {
+    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
+    expect((await precompressDir(dir, ALL)).written).toBe(2);
+
+    // What dual resolution or two installed versions produce: another instance of this module,
+    // with its own module scope. A memo living there re-encodes what this pass just wrote.
+    const copy = await loadSecondCopy();
+    expect((await copy.precompressDir(dir, ALL)).written).toBe(0);
   });
 
   it("a file written between passes is still covered", async () => {

@@ -236,12 +236,31 @@ const NEGOTIABLE = new Set([".css", ".htm", ".html", ".js", ".json", ".mjs", ".s
 // queueing past it buys no parallelism while multiplying peak memory.
 const CONCURRENCY = 4;
 
+/** Identifies what a record means: the bytes it is keyed on, the variants a hit claims are on
+ *  disk, and the parameters those were encoded with. Copies of this module share a memo only when
+ *  their contracts match, so a copy that would write different variants cannot read these records.
+ *  Any change to what a reconciliation produces needs a new number. A hit is a comparison against
+ *  what this copy would record for the bytes in hand, so a number left unbumped can leave another
+ *  copy's compression parameters in place but not a variant whose source has changed. */
+const MEMO_CONTRACT = 1;
+
+const MEMO_KEY = Symbol.for(`@universal-deploy/node precompress memo v${MEMO_CONTRACT}`);
+
+/** A cast, not a `declare global`: augmenting `globalThis` would put this internal into the
+ *  published types. */
+const globalScope = globalThis as unknown as Record<symbol, Map<string, string> | undefined>;
+
 /**
  * What this build has already reconciled, by absolute path. Keyed on **content**, never on
  * the path alone: a later environment may rewrite a file an earlier pass handled, and a
  * path-keyed memo would skip it and leave the earlier bytes' variants in place.
+ *
+ * On `globalThis` rather than module scope, which is per module **instance**: dual resolution or
+ * two installed versions put more than one copy of this module in one process, and a per-copy
+ * memo would re-encode what another copy has already written.
  */
-const reconciled = new Map<string, string>();
+const reconciled = globalScope[MEMO_KEY] ?? new Map<string, string>();
+globalScope[MEMO_KEY] = reconciled;
 
 /** A later build may empty the output directory, so a record that outlived one would claim a
  *  reconciliation whose variants are no longer there. Cleared during config resolution, before
