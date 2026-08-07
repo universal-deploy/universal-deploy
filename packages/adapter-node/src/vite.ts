@@ -136,8 +136,9 @@ export function node(options?: {
     {
       name: "ud:node:precompress",
       apply: "build",
-      // The memo records what this build put on disk, and a later build may empty the output
-      // directory, so a record that outlived a build would describe files that are gone.
+      // The memo records which source and configuration this build already reconciled, and a
+      // later build may empty the output directory, so a record that outlived a build would
+      // describe files that are gone.
       // `configResolved` fires before any environment's `buildStart`, so clearing here resets
       // between builds without clearing between the client and ssr passes of one.
       configResolved() {
