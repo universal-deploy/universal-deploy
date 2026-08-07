@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { extname, join, posix, sep } from "node:path";
 import { promisify } from "node:util";
-import { brotliCompress, brotliDecompress, constants, gunzip, gzip } from "node:zlib";
+import { brotliCompress, constants, gzip } from "node:zlib";
 
 export type PrecompressEncoding = "br" | "gzip";
 
@@ -116,43 +116,17 @@ function ownsVariantsFor(filePath: string, relPath: string, context: Precompress
 }
 
 /**
- * Whether this file is already reconciled. Against a matching record the source is hashed and
- * the suffixes that pass wrote are confirmed present — the variants themselves are not read.
- * Without one, `decodesToSource` reads and compares them, which is what seeds the record.
+ * Whether this file is already reconciled: the source hashes to the record this process kept,
+ * and the suffixes that pass wrote are still on disk. Nothing on disk is read.
  */
 async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
   const key = lookupKey(source, resolved);
   const record = reconciled.get(filePath);
-  if (record?.startsWith(key) && (await stillWritten(filePath, record.slice(key.length)))) return true;
-
-  // For a directory that was already correct, this is the only place an entry is ever written:
-  // returning true here makes `processFile` return before reaching its own `remember`. Delete
-  // it and that state re-decodes on every later pass, having no other way to be recorded.
-  if (!(await decodesToSource(filePath, source, resolved))) return false;
-  remember(
-    filePath,
-    source,
-    resolved,
-    resolved.encodings.map((e) => CODECS[e].ext),
-  );
-  return true;
+  if (record === undefined || !record.startsWith(key)) return false;
+  return stillWritten(filePath, record.slice(key.length));
 }
 
-/** Whether every configured variant decodes to exactly the identity beside it. A missing
- *  variant, a decode failure, or any difference means reconcile. */
-async function decodesToSource(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
-  for (const encoding of resolved.encodings) {
-    const codec = CODECS[encoding];
-    // Unreadable for any reason means not usable as-is — the reconcile loop then deals with it.
-    const bytes = await readFile(filePath + codec.ext).catch(() => null);
-    if (!bytes || !notLarger(source, bytes)) return false;
-    const decoded = await codec.decode(bytes).catch(() => null);
-    if (!decoded || !decoded.equals(source)) return false;
-  }
-  return true;
-}
-
-/** Record what this pass reconciled, so later passes skip on a hash instead of a decode. */
+/** Record what this pass reconciled, so later passes settle it with a hash. */
 function remember(filePath: string, source: Buffer, resolved: ResolvedPrecompress, wrote: readonly string[]): void {
   reconciled.set(filePath, recordOf(source, resolved, wrote));
 }
@@ -263,18 +237,13 @@ const brotliAsync = promisify(brotliCompress);
 
 const gzipAsync = promisify(gzip);
 
-const brotliDecompressAsync = promisify(brotliDecompress);
-
-const gunzipAsync = promisify(gunzip);
-
 interface Codec {
   /** Suffix of the variant file, and the value srvx is handed to look one up. */
   ext: string;
   encode: (source: Buffer) => Promise<Buffer>;
-  decode: (bytes: Buffer) => Promise<Buffer>;
 }
 
-/** Everything one encoding needs — suffix, encode, decode — in one entry, checked against
+/** Everything one encoding needs — suffix and encoder — in one entry, checked against
  *  `PrecompressEncoding` so the table and the union cannot disagree. */
 const CODECS = {
   br: {
@@ -287,12 +256,10 @@ const CODECS = {
           [constants.BROTLI_PARAM_SIZE_HINT]: source.length,
         },
       }),
-    decode: (bytes) => brotliDecompressAsync(bytes),
   },
   gzip: {
     ext: ".gz",
     encode: (source) => gzipAsync(source, { level: constants.Z_BEST_COMPRESSION }),
-    decode: (bytes) => gunzipAsync(bytes),
   },
 } satisfies Record<PrecompressEncoding, Codec>;
 
