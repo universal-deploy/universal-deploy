@@ -243,8 +243,8 @@ const CONCURRENCY = 4;
  */
 const reconciled = new Map<string, string>();
 
-/** Vite empties the output directory before the next build, so a record that outlived one would
- *  describe files that are gone. Cleared once per build, before any environment pass. */
+/** A later build may empty the output directory, so a record that outlived one would describe
+ *  files that are gone. Cleared during config resolution, before any environment `buildStart`. */
 export function forgetReconciled(): void {
   reconciled.clear();
 }

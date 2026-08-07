@@ -170,9 +170,9 @@ describe("repeat passes over one directory", () => {
     const first = await precompressDir(dir, ALL);
     expect(first.written).toBe(2);
 
-    // What a second `vite.build()` in one process does: empty the output directory, then rebuild
-    // byte-identical sources. The record describes files that are now gone, so without the reset
-    // the digests still match and the whole tree is skipped — the build emits nothing at all.
+    // A second `vite.build()` in one process, where the output directory was emptied and
+    // byte-identical sources rebuilt. The record describes files that are now gone, so without
+    // the reset the digests still match and the whole tree is skipped — nothing is emitted.
     await rm(dir, { recursive: true, force: true });
     await mkdir(dir, { recursive: true });
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
@@ -416,7 +416,7 @@ describe("the emission pass sees everything the build wrote", () => {
     await p.closeBundle.handler.call(dispatch(dir));
     expect(await exists(join(dir, "app.js.br"))).toBe(true);
 
-    // A second `vite.build()`: the output directory is emptied and identical sources rebuilt.
+    // A second `vite.build()` that emptied the output directory and rebuilt identical sources.
     // The reset has to come from the plugin's own `configResolved` — this test never calls
     // `forgetReconciled`, so a record surviving the build boundary skips the whole tree.
     await rm(dir, { recursive: true, force: true });
