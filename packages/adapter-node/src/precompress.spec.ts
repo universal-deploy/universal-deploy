@@ -6,7 +6,13 @@ import { brotliCompressSync, brotliDecompressSync, gunzipSync } from "node:zlib"
 import { staticMiddleware } from "srvx/static";
 import type { Environment } from "vite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { encodingsMap, precompressDir, type ResolvedPrecompress, resolvePrecompress } from "./precompress.js";
+import {
+  encodingsMap,
+  forgetReconciled,
+  precompressDir,
+  type ResolvedPrecompress,
+  resolvePrecompress,
+} from "./precompress.js";
 import { type ResolvedStaticOptions, resolveStaticOptions } from "./static-options.js";
 import { node, resolveStaticDir, resolveStaticHint } from "./vite.js";
 
@@ -165,11 +171,12 @@ describe("repeat passes over one directory", () => {
     expect(first.written).toBe(2);
 
     // What a second `vite.build()` in one process does: empty the output directory, then rebuild
-    // byte-identical sources. The memo still holds those bytes, so a record that does not check
-    // its variants are on disk skips the whole tree and the build emits nothing at all.
+    // byte-identical sources. The record describes files that are now gone, so without the reset
+    // the digests still match and the whole tree is skipped — the build emits nothing at all.
     await rm(dir, { recursive: true, force: true });
     await mkdir(dir, { recursive: true });
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
+    forgetReconciled();
 
     const second = await precompressDir(dir, ALL);
     expect(second.written).toBe(2);
@@ -206,8 +213,9 @@ describe("repeat passes over one directory", () => {
   it("retires variants that no longer meet a raised threshold", async () => {
     await writeFile(join(dir, "app.js"), "x".repeat(4096));
     await precompressDir(dir, resolvePrecompress({ threshold: 0 }) as ResolvedPrecompress);
-    // The variants still decode to the identity, so byte correspondence alone would keep
-    // them — but this build's policy no longer wants them at all.
+    // The source is unchanged, so the record still matches it — but eligibility is decided
+    // before the record is consulted, and this build's policy no longer wants them at all.
+    // This is the only control on that ordering: invert it and every other test still passes.
     await precompressDir(dir, resolvePrecompress({ threshold: 8192 }) as ResolvedPrecompress);
     expect(await exists(join(dir, "app.js.br"))).toBe(false);
     expect(await exists(join(dir, "app.js.gz"))).toBe(false);
@@ -365,6 +373,7 @@ describe("lookup is enabled only for the reconciled directory", () => {
 describe("the emission pass sees everything the build wrote", () => {
   interface PrecompressPlugin {
     applyToEnvironment?: unknown;
+    configResolved: () => void;
     closeBundle: { order?: string; handler: (this: unknown) => Promise<void> };
   }
 
@@ -399,6 +408,25 @@ describe("the emission pass sees everything the build wrote", () => {
     await plugin().closeBundle.handler.call(dispatch(dir));
     // vike writes pre-rendered HTML from the ssr environment. Nothing else walks after it.
     expect(await exists(join(dir, "prerendered.html.br"))).toBe(true);
+  });
+
+  it("a second build through the plugin emits again, with no reset from the test", async () => {
+    const p = plugin();
+    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
+    await p.closeBundle.handler.call(dispatch(dir));
+    expect(await exists(join(dir, "app.js.br"))).toBe(true);
+
+    // A second `vite.build()`: the output directory is emptied and identical sources rebuilt.
+    // The reset has to come from the plugin's own `configResolved` — this test never calls
+    // `forgetReconciled`, so a record surviving the build boundary skips the whole tree.
+    await rm(dir, { recursive: true, force: true });
+    await mkdir(dir, { recursive: true });
+    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
+
+    p.configResolved();
+    await p.closeBundle.handler.call(dispatch(dir));
+    expect(await exists(join(dir, "app.js.br"))).toBe(true);
+    expect(await exists(join(dir, "app.js.gz"))).toBe(true);
   });
 
   it("declares no applyToEnvironment, so Vite dispatches it to all of them", () => {

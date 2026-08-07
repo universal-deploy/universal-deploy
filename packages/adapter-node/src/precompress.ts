@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { extname, join, posix, sep } from "node:path";
 import { promisify } from "node:util";
 import { brotliCompress, constants, gzip } from "node:zlib";
@@ -102,33 +102,18 @@ async function processFile(
   const eligible = source.length >= resolved.threshold;
   // Eligibility first: an ineligible file must reach `reconcile`, or a variant left by a
   // lower threshold would survive.
-  if (eligible && (await isCurrent(filePath, source, resolved))) return 0;
+  const record = eligible ? recordOf(source, resolved) : undefined;
+  if (record !== undefined && reconciled.get(filePath) === record) return 0;
 
-  const wrote = await reconcile(filePath, source, eligible, resolved);
-  if (eligible) remember(filePath, source, resolved, wrote);
-  return wrote.length;
+  const written = await reconcile(filePath, source, eligible, resolved);
+  if (record !== undefined) reconciled.set(filePath, record);
+  return written;
 }
 
 /** Whether the variants beside this file are ours to write and remove. */
 function ownsVariantsFor(filePath: string, relPath: string, context: PrecompressContext): boolean {
   if (!NEGOTIABLE.has(extname(filePath).toLowerCase())) return false;
   return !context.passThrough?.has(relPath);
-}
-
-/**
- * Whether this file is already reconciled: the source hashes to the record this process kept,
- * and the suffixes that pass wrote are still on disk. Nothing on disk is read.
- */
-async function isCurrent(filePath: string, source: Buffer, resolved: ResolvedPrecompress): Promise<boolean> {
-  const key = lookupKey(source, resolved);
-  const record = reconciled.get(filePath);
-  if (record === undefined || !record.startsWith(key)) return false;
-  return stillWritten(filePath, record.slice(key.length));
-}
-
-/** Record what this pass reconciled, so later passes settle it with a hash. */
-function remember(filePath: string, source: Buffer, resolved: ResolvedPrecompress, wrote: readonly string[]): void {
-  reconciled.set(filePath, recordOf(source, resolved, wrote));
 }
 
 /** Write the variants this build owes and remove the ones it does not, returning how many were
@@ -138,8 +123,8 @@ async function reconcile(
   source: Buffer,
   eligible: boolean,
   resolved: ResolvedPrecompress,
-): Promise<string[]> {
-  const wrote: string[] = [];
+): Promise<number> {
+  let written = 0;
   for (const encoding of resolved.encodings) {
     const codec = CODECS[encoding];
     const variantPath = filePath + codec.ext;
@@ -147,7 +132,7 @@ async function reconcile(
       const encoded = await codec.encode(source);
       if (notLarger(source, encoded)) {
         await writeFile(variantPath, encoded);
-        wrote.push(codec.ext);
+        written++;
         continue;
       }
     }
@@ -155,7 +140,7 @@ async function reconcile(
     // fails is not swallowed: it stops the build.
     await rm(variantPath, { force: true });
   }
-  return wrote;
+  return written;
 }
 
 /** Every file under `dir`, as absolute paths. Nothing is filtered here — extensions are
@@ -204,33 +189,10 @@ function digestOf(bytes: Buffer): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-/** What a pass records for a file: the source bytes it reconciled, the configuration it
- *  reconciled them for, and the suffixes it wrote. A differently-configured pass owes different
- *  variants, so it must miss. */
-function recordOf(source: Buffer, resolved: ResolvedPrecompress, wrote: readonly string[]): string {
-  return `${digestOf(source)}\0${resolved.encodings.join()}\0${wrote.join()}`;
-}
-
-/** The prefix a later pass can compute without knowing what was written. */
-function lookupKey(source: Buffer, resolved: ResolvedPrecompress): string {
-  return `${digestOf(source)}\0${resolved.encodings.join()}\0`;
-}
-
-/** Whether the suffixes a pass wrote are still on disk. Empty is a value: a file that earned
- *  no variant has nothing to check, so it skips without touching the disk. Only ENOENT counts
- *  as absent — reading any other error as "gone" would re-encode on a broken filesystem. */
-async function stillWritten(filePath: string, suffixes: string): Promise<boolean> {
-  for (const suffix of suffixes ? suffixes.split(",") : []) {
-    const there = await stat(filePath + suffix).then(
-      () => true,
-      (error: NodeJS.ErrnoException) => {
-        if (error.code === "ENOENT") return false;
-        throw error;
-      },
-    );
-    if (!there) return false;
-  }
-  return true;
+/** What a pass records for a file: the source bytes it reconciled, under the configuration it
+ *  reconciled them for. A differently-configured pass owes different variants, so it must miss. */
+function recordOf(source: Buffer, resolved: ResolvedPrecompress): string {
+  return `${digestOf(source)}\0${resolved.encodings.join()}`;
 }
 
 const brotliAsync = promisify(brotliCompress);
@@ -275,8 +237,14 @@ const NEGOTIABLE = new Set([".css", ".htm", ".html", ".js", ".json", ".mjs", ".s
 const CONCURRENCY = 4;
 
 /**
- * What this process has already reconciled, by absolute path. Keyed on **content**, never on
+ * What this build has already reconciled, by absolute path. Keyed on **content**, never on
  * the path alone: a later environment may rewrite a file an earlier pass handled, and a
  * path-keyed memo would skip it and leave the earlier bytes' variants in place.
  */
 const reconciled = new Map<string, string>();
+
+/** Vite empties the output directory before the next build, so a record that outlived one would
+ *  describe files that are gone. Cleared once per build, before any environment pass. */
+export function forgetReconciled(): void {
+  reconciled.clear();
+}
