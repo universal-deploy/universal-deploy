@@ -138,7 +138,7 @@ export function node(options?: {
       apply: "build",
       // The memo records which source and configuration this build already reconciled, and a
       // later build may empty the output directory, so a record that outlived a build would
-      // describe files that are gone.
+      // claim a reconciliation whose variants are no longer there.
       // `configResolved` fires before any environment's `buildStart`, so clearing here resets
       // between builds without clearing between the client and ssr passes of one.
       configResolved() {

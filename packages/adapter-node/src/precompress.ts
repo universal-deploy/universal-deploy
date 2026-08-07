@@ -243,8 +243,9 @@ const CONCURRENCY = 4;
  */
 const reconciled = new Map<string, string>();
 
-/** A later build may empty the output directory, so a record that outlived one would describe
- *  files that are gone. Cleared during config resolution, before any environment `buildStart`. */
+/** A later build may empty the output directory, so a record that outlived one would claim a
+ *  reconciliation whose variants are no longer there. Cleared during config resolution, before
+ *  any environment `buildStart`. */
 export function forgetReconciled(): void {
   reconciled.clear();
 }

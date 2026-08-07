@@ -171,8 +171,9 @@ describe("repeat passes over one directory", () => {
     expect(first.written).toBe(2);
 
     // Models a second `vite.build()` in one process, where the output directory was emptied and
-    // byte-identical sources rebuilt. The record describes files that are now gone, so without
-    // the reset the digests still match and the whole tree is skipped — nothing is emitted.
+    // byte-identical sources rebuilt. The sources are back and their digests still match, while
+    // the variants beside them are gone — so without the reset the whole tree is skipped and
+    // nothing is emitted.
     await rm(dir, { recursive: true, force: true });
     await mkdir(dir, { recursive: true });
     await writeFile(join(dir, "app.js"), COMPRESSIBLE);
