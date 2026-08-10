@@ -10,6 +10,13 @@ import {
   normalizePath,
   type Plugin,
 } from "vite";
+import {
+  collectRelativeFiles,
+  encodingsMap,
+  type PrecompressOptions,
+  precompressDir,
+  resolvePrecompress,
+} from "./precompress.js";
 
 // @ts-expect-error Bun global
 const isBun = typeof Bun !== "undefined";
@@ -23,8 +30,10 @@ function findClientOutDir(env: Environment) {
 }
 
 /** Absolute path of the directory that will be served, or `undefined` when static
- *  serving is off. Vite leaves `build.outDir` and a configured path relative to
- *  `config.root`, so both are anchored to it rather than to `process.cwd()`. */
+ *  serving is off. Always the **client** environment's directory, whichever environment
+ *  is passed — `env` supplies only the shared top-level config and root. Vite leaves
+ *  `build.outDir` and a configured path relative to `config.root`, so both are anchored
+ *  to it rather than to `process.cwd()`. */
 export function resolveStaticDir(env: Environment, configured: string | boolean | undefined): string | undefined {
   if (configured === false) return undefined;
   const path = typeof configured === "string" ? configured : findClientOutDir(env);
@@ -48,7 +57,18 @@ export function resolveStaticHint(env: Environment, configured: string | boolean
 }
 
 // Creates a server and listens for connections in Node/Deno/Bun
-export function node(options?: { static?: string | boolean; importer?: string }): Plugin[] {
+export function node(options?: {
+  static?: string | boolean;
+  importer?: string;
+  /**
+   * Emit `.br`/`.gz` variants of the served static assets at build time and serve
+   * them instead of compressing on every request.
+   *
+   * @default false
+   */
+  precompress?: boolean | PrecompressOptions;
+}): Plugin[] {
+  const precompress = resolvePrecompress(options?.precompress);
   return [
     // Resolves virtual:ud:node-entry to its node runtime id
     {
@@ -89,18 +109,55 @@ export function node(options?: { static?: string | boolean; importer?: string })
 
       transform: {
         filter: {
-          code: [/__UD_STATIC__/, /__UD_PROD__/],
+          code: [/__UD_STATIC__/, /__UD_PROD__/, /__UD_ENCODINGS__/],
         },
         handler(code) {
           const s = new MagicString(code);
           s.replace(/__UD_STATIC__/g, JSON.stringify(resolveStaticHint(this.environment, options?.static)));
           s.replace(/__UD_PROD__/g, JSON.stringify(true));
+          // Derived from the same resolved object that drives emission, so the suffixes
+          // served and the suffixes written cannot disagree.
+          s.replace(/__UD_ENCODINGS__/g, JSON.stringify(precompress ? encodingsMap(precompress) : false));
           if (s.hasChanged()) {
             return {
               code: s.toString(),
               map: s.generateMap({ hires: true }),
             };
           }
+        },
+      },
+    },
+    // Emit precompressed variants beside the static assets, once they are on disk.
+    // Runs at EVERY environment's `closeBundle`, not just the client's: a framework may
+    // write more servable files from a later environment — vike pre-renders HTML inside
+    // the ssr environment's `writeBundle` — and those would otherwise never be seen.
+    // A later pass still walks; what it skips is re-encoding what an earlier pass already did.
+    {
+      name: "ud:node:precompress",
+      apply: "build",
+      // No `applyToEnvironment`: emission is not scoped to one environment. Excluding any
+      // environment would drop the files it alone writes — vike pre-renders HTML inside the
+      // ssr environment — and nothing later would ever look at them.
+      closeBundle: {
+        // Runs after the default-order `closeBundle` hooks, so files they write are in the
+        // walk. (`sequential` adds nothing: rolldown runs every hook sequentially already,
+        // and deprecates the option.)
+        order: "post",
+        async handler() {
+          if (!precompress) return;
+          // The client's directory in every pass, including the ssr one — the walk targets
+          // what is served, not what the current environment emitted.
+          const dir = resolveStaticDir(this.environment, options?.static);
+          if (dir === undefined) return;
+
+          const { publicDir, build } = this.environment.config;
+          // Pass-throughs are re-copied from source every build, so their variants are
+          // the user's: neither emitted nor retired here.
+          const passThrough = build.copyPublicDir && publicDir ? await collectRelativeFiles(publicDir) : undefined;
+
+          const { written } = await precompressDir(dir, precompress, { passThrough });
+          // A later environment's pass usually has nothing left to do; stay quiet then.
+          if (written > 0) this.environment.logger.info(`precompressed ${written} variants`);
         },
       },
     },
@@ -180,5 +237,7 @@ export function node(options?: { static?: string | boolean; importer?: string })
     },
   ];
 }
+
+export type { PrecompressEncoding, PrecompressOptions } from "./precompress.js";
 
 export default node;
