@@ -1,6 +1,5 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import userServerEntry from "virtual:ud:catch-all";
 import type { Fetchable } from "@universal-deploy/store";
 import { type FetchHandler, type ServerMiddleware, serve as serveSrvx } from "srvx";
 
@@ -13,6 +12,13 @@ function assertFetchable(mod: unknown, id: string): Fetchable {
 }
 
 async function startServer() {
+  if (!process.env.NODE_ENV) {
+    // @ts-expect-error replaced by node plugin
+    process.env.NODE_ENV = __UD_PROD__ ? "production" : "development";
+  }
+
+  // Dependencies choose their development or production build while the user entry evaluates.
+  const { default: userServerEntry } = await import("virtual:ud:catch-all");
   assertFetchable(userServerEntry, "virtual:ud:catch-all");
   let { static: staticHint } = userServerEntry as unknown as FetchHandler & {
     static?: boolean | string;
@@ -20,11 +26,6 @@ async function startServer() {
 
   // @ts-expect-error replaced by node plugin
   if (staticHint === undefined) staticHint = __UD_STATIC__;
-
-  if (!process.env.NODE_ENV) {
-    // @ts-expect-error replaced by node plugin
-    process.env.NODE_ENV = __UD_PROD__ ? "production" : "development";
-  }
 
   // Resolve a string hint against this module's runtime location — keeps the
   // built artifact portable across filesystems (Docker, deploy targets, …).
