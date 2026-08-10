@@ -251,9 +251,9 @@ const MEMO_KEY = Symbol.for(`@universal-deploy/node precompress memo v${MEMO_CON
 const globalScope = globalThis as unknown as Record<symbol, Map<string, string> | undefined>;
 
 /**
- * What this build has already reconciled, by absolute path. Keyed on **content**, never on
- * the path alone: a later environment may rewrite a file an earlier pass handled, and a
- * path-keyed memo would skip it and leave the earlier bytes' variants in place.
+ * What has already been reconciled, by absolute path. Keyed on **content**, never on the path
+ * alone: a later environment may rewrite a file an earlier pass handled, and a path-keyed memo
+ * would skip it and leave the earlier bytes' variants in place.
  *
  * On `globalThis` rather than module scope, which is per module **instance**: dual resolution or
  * two installed versions put more than one copy of this module in one process, and a per-copy
@@ -261,10 +261,3 @@ const globalScope = globalThis as unknown as Record<symbol, Map<string, string> 
  */
 const reconciled = globalScope[MEMO_KEY] ?? new Map<string, string>();
 globalScope[MEMO_KEY] = reconciled;
-
-/** A later build may empty the output directory, so a record that outlived one would claim a
- *  reconciliation whose variants are no longer there. Cleared during config resolution, before
- *  any environment `buildStart`. */
-export function forgetReconciled(): void {
-  reconciled.clear();
-}

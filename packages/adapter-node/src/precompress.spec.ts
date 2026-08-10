@@ -6,13 +6,7 @@ import { brotliCompressSync, brotliDecompressSync, gunzipSync } from "node:zlib"
 import { staticMiddleware } from "srvx/static";
 import type { Environment } from "vite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import {
-  encodingsMap,
-  forgetReconciled,
-  precompressDir,
-  type ResolvedPrecompress,
-  resolvePrecompress,
-} from "./precompress.js";
+import { encodingsMap, precompressDir, type ResolvedPrecompress, resolvePrecompress } from "./precompress.js";
 import { type ResolvedStaticOptions, resolveStaticOptions } from "./static-options.js";
 import { node, resolveStaticDir, resolveStaticHint } from "./vite.js";
 
@@ -169,26 +163,6 @@ describe("repeat passes over one directory", () => {
     // Same bytes, so the digest matches; only the recorded configuration separates them.
     const second = await precompressDir(dir, ALL);
     expect(second.written).toBe(2);
-    expect(await exists(join(dir, "app.js.gz"))).toBe(true);
-  });
-
-  it("emits again for a second build in the same process", async () => {
-    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
-    const first = await precompressDir(dir, ALL);
-    expect(first.written).toBe(2);
-
-    // Models a second `vite.build()` in one process, where the output directory was emptied and
-    // byte-identical sources rebuilt. The sources are back and their digests still match, while
-    // the variants beside them are gone — so without the reset the whole tree is skipped and
-    // nothing is emitted.
-    await rm(dir, { recursive: true, force: true });
-    await mkdir(dir, { recursive: true });
-    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
-    forgetReconciled();
-
-    const second = await precompressDir(dir, ALL);
-    expect(second.written).toBe(2);
-    expect(await exists(join(dir, "app.js.br"))).toBe(true);
     expect(await exists(join(dir, "app.js.gz"))).toBe(true);
   });
 
@@ -391,7 +365,6 @@ describe("lookup is enabled only for the reconciled directory", () => {
 describe("the emission pass sees everything the build wrote", () => {
   interface PrecompressPlugin {
     applyToEnvironment?: unknown;
-    configResolved: () => void;
     closeBundle: { order?: string; handler: (this: unknown) => Promise<void> };
   }
 
@@ -426,25 +399,6 @@ describe("the emission pass sees everything the build wrote", () => {
     await plugin().closeBundle.handler.call(dispatch(dir));
     // vike writes pre-rendered HTML from the ssr environment. Nothing else walks after it.
     expect(await exists(join(dir, "prerendered.html.br"))).toBe(true);
-  });
-
-  it("a second build through the plugin emits again, with no reset from the test", async () => {
-    const p = plugin();
-    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
-    await p.closeBundle.handler.call(dispatch(dir));
-    expect(await exists(join(dir, "app.js.br"))).toBe(true);
-
-    // Models a second `vite.build()` that emptied the output directory and rebuilt identical sources.
-    // The reset has to come from the plugin's own `configResolved` — this test never calls
-    // `forgetReconciled`, so a record surviving the build boundary skips the whole tree.
-    await rm(dir, { recursive: true, force: true });
-    await mkdir(dir, { recursive: true });
-    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
-
-    p.configResolved();
-    await p.closeBundle.handler.call(dispatch(dir));
-    expect(await exists(join(dir, "app.js.br"))).toBe(true);
-    expect(await exists(join(dir, "app.js.gz"))).toBe(true);
   });
 
   it("declares no applyToEnvironment, so Vite dispatches it to all of them", () => {

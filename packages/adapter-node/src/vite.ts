@@ -13,7 +13,6 @@ import {
 import {
   collectRelativeFiles,
   encodingsMap,
-  forgetReconciled,
   type PrecompressOptions,
   precompressDir,
   resolvePrecompress,
@@ -132,18 +131,10 @@ export function node(options?: {
     // Runs at EVERY environment's `closeBundle`, not just the client's: a framework may
     // write more servable files from a later environment — vike pre-renders HTML inside
     // the ssr environment's `writeBundle` — and those would otherwise never be seen.
-    // A later pass still walks; what it skips is re-encoding what this build already did.
+    // A later pass still walks; what it skips is re-encoding what an earlier pass already did.
     {
       name: "ud:node:precompress",
       apply: "build",
-      // The memo records which source and configuration this build already reconciled, and a
-      // later build may empty the output directory, so a record that outlived a build would
-      // claim a reconciliation whose variants are no longer there.
-      // `configResolved` fires before any environment's `buildStart`, so clearing here resets
-      // between builds without clearing between the client and ssr passes of one.
-      configResolved() {
-        forgetReconciled();
-      },
       // No `applyToEnvironment`: emission is not scoped to one environment. Excluding any
       // environment would drop the files it alone writes — vike pre-renders HTML inside the
       // ssr environment — and nothing later would ever look at them.
