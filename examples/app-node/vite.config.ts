@@ -5,7 +5,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [
     // Emits dist/index.js
-    node(),
+    node({ precompress: true }),
     // Minimal SSR framework. Includes devServer and catchAll plugins from universal-deploy
     awesomeFramework({
       additionalEntries: [

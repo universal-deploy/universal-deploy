@@ -43,4 +43,5 @@ The `universalDeploy()` plugin accepts the following options:
 - `node`: Same options as the `@universal-deploy/node` adapter:
     - `static`: (string | boolean) The directory containing static assets. Defaults to the client output directory.
     - `importer`: (string) The importer to use when resolving the server entry.
+    - `precompress`: (boolean | object) Emit `.br`/`.gz` variants of the static assets at build time and serve those instead of compressing per request. Off by default; see the [adapter README](../adapter-node/README.md#precompress).
 - `entry`: (string) Relative or absolute path to override the default server entry.
