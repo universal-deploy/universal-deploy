@@ -37,14 +37,12 @@ test.describe("Server-side HMR", () => {
     const modifiedApiContent = originalApiContent.replace('"test"', '"test-HMR"');
     await fs.writeFile(apiFilePath, modifiedApiContent, "utf-8");
 
-    // Wait for HMR to process the change
-    await page.waitForTimeout(2000);
-
-    // Make API call again and verify the change was applied
-    const updatedResponse = await page.reload();
-    const updatedData = await updatedResponse?.text();
-
-    expect(updatedData).toBe("test-HMR");
+    // HMR picks the change up asynchronously, so reload until the new value is served rather
+    // than guessing how long the server takes to apply it.
+    await expect(async () => {
+      const updatedResponse = await page.reload();
+      expect(await updatedResponse?.text()).toBe("test-HMR");
+    }).toPass({ timeout: 10 * 1000 });
   });
 
   test("should hot reload vite.config.ts changes", async ({ page }) => {

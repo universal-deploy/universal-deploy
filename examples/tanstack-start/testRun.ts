@@ -1,6 +1,6 @@
 export { testRun };
 
-import { expect, fetchHtml, getServerUrl, page, run, sleep, test } from "@brillout/test-e2e";
+import { autoRetry, expect, fetchHtml, getServerUrl, page, run, test } from "@brillout/test-e2e";
 
 function testRun(cmd: `pnpm run ${string}`, options?: Parameters<typeof run>[1]) {
   run(cmd, {
@@ -32,7 +32,13 @@ function testRun(cmd: `pnpm run ${string}`, options?: Parameters<typeof run>[1])
     await input.fill("Use photon");
     const btn = page.locator("button", { hasText: "Add todo" });
     await btn.click();
-    await sleep(300);
-    expect(await page.textContent("#ul")).toContain(`Use photon`);
+    // The todo is appended after a server function round-trip, so how long the list takes to
+    // update is not something the test can know: retry the assertion instead of guessing.
+    await autoRetry(
+      async () => {
+        expect(await page.textContent("#ul")).toContain(`Use photon`);
+      },
+      { timeout: 5 * 1000 },
+    );
   });
 }
