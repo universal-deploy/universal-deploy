@@ -1,5 +1,13 @@
 # @universal-deploy/vite
 
+## 0.1.12
+
+### Patch Changes
+
+- bcd3e65: feat(node): opt-in build-time precompression of static assets (`node({ precompress: true })`)
+- Updated dependencies [bcd3e65]
+  - @universal-deploy/node@0.1.11
+
 ## 0.1.11
 
 ### Patch Changes

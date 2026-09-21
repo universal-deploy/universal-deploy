@@ -1,5 +1,11 @@
 # @universal-deploy/node
 
+## 0.1.11
+
+### Patch Changes
+
+- bcd3e65: feat(node): opt-in build-time precompression of static assets (`node({ precompress: true })`)
+
 ## 0.1.10
 
 ### Patch Changes
