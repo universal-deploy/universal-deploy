@@ -27,7 +27,11 @@ jobs:
           bun-version: 1.3.2
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.x
+          # Pinned, as in e2e-deno.yml. Floating v2.x silently picked up a Deno that rejects
+          # a flag @netlify/dev passes to it, which fails every app-netlify test with
+          # "unexpected argument '--allow-scripts' found". 2.9.4 is the newest version this
+          # workflow has passed on. Unpin once the netlify dev stack is upgraded.
+          deno-version: v2.9.4
       - run: pnpm install
       - run: pnpm exec playwright install chromium
       - run: pnpm run build
