@@ -24,7 +24,7 @@ export default defineConfig({
 });
 ```
 
-Are you a framework developer? Read the [Framework Developer Guide](../../docs/framework-developers.md) to learn how to integrate `@universal-deploy/vite` into your framework.
+Are you a framework developer? Read the [Framework Developer Guide](https://github.com/universal-deploy/universal-deploy/blob/main/docs/framework-developers.md) to learn how to integrate `@universal-deploy/vite` into your framework.
 
 ### How it works
 
@@ -43,5 +43,5 @@ The `universalDeploy()` plugin accepts the following options:
 - `node`: Same options as the `@universal-deploy/node` adapter:
     - `static`: (string | boolean) The directory containing static assets. Defaults to the client output directory.
     - `importer`: (string) The importer to use when resolving the server entry.
-    - `precompress`: (boolean | object) Emit `.br`/`.gz` variants of the static assets at build time and serve those instead of compressing per request. Off by default; see the [adapter README](../adapter-node/README.md#precompress).
+    - `precompress`: (boolean | object) Emit `.br`/`.gz` variants of the static assets at build time and serve those instead of compressing per request. Off by default; see the [adapter README](https://github.com/universal-deploy/universal-deploy/blob/main/packages/adapter-node/README.md#precompress).
 - `entry`: (string) Relative or absolute path to override the default server entry.
