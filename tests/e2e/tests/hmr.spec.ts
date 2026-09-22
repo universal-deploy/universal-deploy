@@ -26,7 +26,7 @@ test.describe("Server-side HMR", () => {
     await fs.writeFile(viteConfigPath, originalViteConfig, "utf-8");
   });
 
-  test("should hot reload API endpoint changes", async ({ page }) => {
+  test("should hot reload API endpoint changes", async ({ page, request }) => {
     // Make initial API call and verify response
     const initialResponse = await goto(page, "/api/test");
     const initialData = await initialResponse?.text();
@@ -37,14 +37,15 @@ test.describe("Server-side HMR", () => {
     const modifiedApiContent = originalApiContent.replace('"test"', '"test-HMR"');
     await fs.writeFile(apiFilePath, modifiedApiContent, "utf-8");
 
-    // Wait for HMR to process the change
-    await page.waitForTimeout(2000);
-
-    // Make API call again and verify the change was applied
-    const updatedResponse = await page.reload();
-    const updatedData = await updatedResponse?.text();
-
-    expect(updatedData).toBe("test-HMR");
+    // HMR applies the change asynchronously. Poll the endpoint itself rather than reloading
+    // the page: the route returns text, so an attempt is one GET instead of a full page load.
+    // Back off as well, so waiting the whole timeout out costs a handful of requests.
+    await expect
+      .poll(async () => (await request.get("/api/test")).text(), {
+        timeout: 10 * 1000,
+        intervals: [250, 500, 1000, 1000, 2000],
+      })
+      .toBe("test-HMR");
   });
 
   test("should hot reload vite.config.ts changes", async ({ page }) => {
