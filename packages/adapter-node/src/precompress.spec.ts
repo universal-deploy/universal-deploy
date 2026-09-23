@@ -8,7 +8,7 @@ import type { Environment } from "vite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { encodingsMap, precompressDir, type ResolvedPrecompress, resolvePrecompress } from "./precompress.js";
 import { type ResolvedStaticOptions, resolveStaticOptions } from "./static-options.js";
-import { node, resolveStaticDir, resolveStaticHint } from "./vite.js";
+import { node, precompress, resolveStaticDir, resolveStaticHint } from "./vite.js";
 
 /**
  * Vite 8 leaves `build.outDir` relative to `config.root`, so a resolver that anchors
@@ -399,6 +399,14 @@ describe("the emission pass sees everything the build wrote", () => {
     await plugin().closeBundle.handler.call(dispatch(dir));
     // vike writes pre-rendered HTML from the ssr environment. Nothing else walks after it.
     expect(await exists(join(dir, "prerendered.html.br"))).toBe(true);
+  });
+
+  it("precompress() emits on its own, without node()", async () => {
+    // For a client directory served by something other than this adapter.
+    await writeFile(join(dir, "app.js"), COMPRESSIBLE);
+    const standalone = precompress(true) as unknown as PrecompressPlugin;
+    await standalone.closeBundle.handler.call(dispatch(dir));
+    expect(await exists(join(dir, "app.js.br"))).toBe(true);
   });
 
   it("declares no applyToEnvironment, so Vite dispatches it to all of them", () => {

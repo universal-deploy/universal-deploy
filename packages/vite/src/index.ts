@@ -1,4 +1,4 @@
-export { node } from "@universal-deploy/node/vite";
+export { node, precompress } from "@universal-deploy/node/vite";
 export type { Fetchable, ServerOptions } from "@universal-deploy/store";
 export * from "./const.js";
 export { auto } from "./plugins/auto.js";
