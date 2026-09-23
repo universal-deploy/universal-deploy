@@ -16,6 +16,7 @@ import {
   type PrecompressOptions,
   precompressDir,
   type ResolvedPrecompress,
+  reconcileFiles,
   resolvePrecompress,
 } from "./precompress.js";
 
@@ -210,6 +211,17 @@ export function node(options?: {
  *  it alone when something other than this adapter serves the client directory. */
 export function precompress(options?: boolean | PrecompressOptions): Plugin {
   return precompressPlugin(resolvePrecompress(options), undefined);
+}
+
+/** Emits `.br`/`.gz` variants for the given files outside a Vite build, e.g. pages a framework
+ *  pre-renders after the build ran. */
+export async function precompressFiles(
+  files: string[],
+  options?: boolean | PrecompressOptions,
+): Promise<{ written: number }> {
+  const resolved = resolvePrecompress(options);
+  if (!resolved) return { written: 0 };
+  return reconcileFiles(files, resolved);
 }
 
 // Emit precompressed variants beside the static assets, once they are on disk.
