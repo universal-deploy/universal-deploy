@@ -1,5 +1,12 @@
 # @universal-deploy/node
 
+## 0.1.12
+
+### Patch Changes
+
+- 014752d: feat(node): export `precompress()` to emit `.br`/`.gz` variants without the node adapter
+- 3d5d3de: feat(node): export `precompressFiles()` to emit `.br`/`.gz` variants for files written after the build
+
 ## 0.1.11
 
 ### Patch Changes
