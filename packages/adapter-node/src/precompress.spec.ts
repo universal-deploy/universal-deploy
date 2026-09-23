@@ -8,7 +8,7 @@ import type { Environment } from "vite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { encodingsMap, precompressDir, type ResolvedPrecompress, resolvePrecompress } from "./precompress.js";
 import { type ResolvedStaticOptions, resolveStaticOptions } from "./static-options.js";
-import { node, precompress, resolveStaticDir, resolveStaticHint } from "./vite.js";
+import { node, precompress, precompressFiles, resolveStaticDir, resolveStaticHint } from "./vite.js";
 
 /**
  * Vite 8 leaves `build.outDir` relative to `config.root`, so a resolver that anchors
@@ -413,6 +413,18 @@ describe("the emission pass sees everything the build wrote", () => {
     // Vite's only per-plugin environment filter. The assertion above cannot see it:
     // calling a handler directly bypasses the dispatch that consults it.
     expect(plugin().applyToEnvironment).toBeUndefined();
+  });
+});
+
+describe("precompressFiles()", () => {
+  it("emits beside the listed files only", async () => {
+    // What a framework's standalone pre-render does after the build: it knows which files it wrote.
+    await writeFile(join(dir, "page.html"), COMPRESSIBLE);
+    await writeFile(join(dir, "other.html"), COMPRESSIBLE);
+    const { written } = await precompressFiles([join(dir, "page.html")], true);
+    expect(written).toBe(2);
+    expect(await exists(join(dir, "page.html.br"))).toBe(true);
+    expect(await exists(join(dir, "other.html.br"))).toBe(false);
   });
 });
 

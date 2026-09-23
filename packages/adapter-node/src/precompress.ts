@@ -44,8 +44,21 @@ export async function precompressDir(
   context: PrecompressContext = {},
 ): Promise<{ written: number }> {
   const files = await collectFiles(dir);
-  const toRelative = relativeTo(dir);
+  return processFiles(files, relativeTo(dir), resolved, context);
+}
 
+/** Emit variants beside just these files, e.g. pages a framework pre-renders after the build.
+ *  None of them comes from `publicDir`, so there are no pass-throughs to skip. */
+export async function reconcileFiles(files: string[], resolved: ResolvedPrecompress): Promise<{ written: number }> {
+  return processFiles(files, (file) => file, resolved, {});
+}
+
+async function processFiles(
+  files: string[],
+  toRelative: (file: string) => string,
+  resolved: ResolvedPrecompress,
+  context: PrecompressContext,
+): Promise<{ written: number }> {
   // One cursor shared by every worker, so each file is handed out exactly once.
   const queue = files[Symbol.iterator]();
   let written = 0;
