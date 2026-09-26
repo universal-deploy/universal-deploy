@@ -1,6 +1,7 @@
 import { catchAllEntry } from "@universal-deploy/store";
 import { createMiddleware } from "@universal-middleware/express";
 import type { Environment, FetchableDevEnvironment, Plugin, RunnableDevEnvironment } from "vite";
+import { unmatchedKey } from "../const.js";
 import { assertFetchable } from "../utils.js";
 
 // Vite's isRunnableDevEnvironment isn't reliable when multiple Vite versions are installed
@@ -47,7 +48,10 @@ export function devServer({ environment }: { environment?: string } = {}): Plugi
               resolvedId = resolved.id;
             }
             const mod = await envImportFetchable(ssr, resolvedId);
-            return mod.fetch(request);
+            const response = await mod.fetch(request);
+            // No route matched: fall through to Vite's middlewares (index.html, static files, ...)
+            if (Symbol.for(unmatchedKey) in response) return;
+            return response;
             // biome-ignore lint/style/noNonNullAssertion: ok
           } else if (isFetchableDevEnvironment(ssr!)) {
             // TODO to be tested
