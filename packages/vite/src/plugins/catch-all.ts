@@ -2,7 +2,7 @@ import { getAllEntries } from "@universal-deploy/store";
 import { addRoute, createRouter } from "rou3";
 import { compileRouterToString } from "rou3/compiler";
 import type { Plugin } from "vite";
-import { catchAllId } from "../const.js";
+import { catchAllId, unmatchedKey } from "../const.js";
 import { assertFetchable, shortenId } from "../utils.js";
 
 // A virtual module aggregating all routes defined in the store. Can be overridden by plugins
@@ -58,7 +58,11 @@ ${spreads}
   async fetch(request, ...args) {
     const url = new URL(request.url);
     const key = findRoute(request.method, url.pathname);
-    if (!key || !key.data) return;
+    if (!key || !key.data) {
+      const response = new Response("Not Found", { status: 404 });
+      response[Symbol.for(${JSON.stringify(unmatchedKey)})] = true;
+      return response;
+    }
     const mod = await __map[key.data]();
     return assertFetchable(mod, __ids[key.data]).fetch(request, ...args);
   }
