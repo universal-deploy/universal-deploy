@@ -1,20 +1,22 @@
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import userServerEntry from "virtual:ud:catch-all";
 import type { Fetchable } from "@universal-deploy/store";
 import { type FetchHandler, type ServerMiddleware, serve as serveSrvx } from "srvx";
 import { type ResolvedStaticOptions, resolveStaticOptions } from "./static-options.js";
 
 async function startServer() {
-  assertFetchable(userServerEntry, "virtual:ud:catch-all");
-  const { static: runtimeStatic } = userServerEntry as unknown as FetchHandler & {
-    static?: boolean | string;
-  };
-
+  // Must run before the user entry is evaluated: dependencies such as React pick their
+  // development or production build at module evaluation, hence the dynamic import below.
   if (!process.env.NODE_ENV) {
     // @ts-expect-error replaced by node plugin
     process.env.NODE_ENV = __UD_PROD__ ? "production" : "development";
   }
+
+  const { default: userServerEntry } = await import("virtual:ud:catch-all");
+  assertFetchable(userServerEntry, "virtual:ud:catch-all");
+  const { static: runtimeStatic } = userServerEntry as unknown as FetchHandler & {
+    static?: boolean | string;
+  };
 
   // Resolved against this module's runtime location — keeps the built artifact
   // portable across filesystems (Docker, deploy targets, …).
