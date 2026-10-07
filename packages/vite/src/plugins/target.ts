@@ -1,3 +1,4 @@
+import { catchAllEntry } from "@universal-deploy/store";
 import type { BuildEnvironmentOptions, Plugin } from "vite";
 
 /**
@@ -43,12 +44,19 @@ export default function target(entry: string): Plugin {
         resolvedEntry = resolved.id;
       }
     },
-    transform(code, id) {
-      if (resolvedEntry && id === resolvedEntry) {
-        if (!code.includes("virtual:ud:")) {
-          this.warn(`{ entry: "${entry}" } is missing "virtual:ud:catch-all" import.`);
-        }
+    buildEnd(error) {
+      if (error) return;
+      const moduleIds = [...this.getModuleIds()];
+      // Only check the build that bundles the entry
+      if (!resolvedEntry || !moduleIds.includes(resolvedEntry)) return;
+      // The entry can import virtual:ud:catch-all directly, or indirectly (e.g. a framework that imports it on the entry's behalf)
+      if (!moduleIds.some(isCatchAll)) {
+        this.warn(`{ entry: "${entry}" } doesn't import "${catchAllEntry}" (directly or indirectly).`);
       }
     },
   };
+}
+
+function isCatchAll(id: string) {
+  return id === catchAllEntry || id.startsWith(`${catchAllEntry}?`);
 }
