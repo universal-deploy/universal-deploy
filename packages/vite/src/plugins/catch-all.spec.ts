@@ -14,7 +14,7 @@ function hello(): Plugin {
   return {
     name: "test:hello",
     config() {
-      addEntry({ id: helloId, route: "/api/hello" });
+      addEntry({ id: helloId, route: ["/api/hello", "/api/café"] });
     },
     resolveId(id) {
       if (id === helloId) return id;
@@ -60,6 +60,12 @@ describe("catchAll() without a /** entry", () => {
 
   it("forwards matched routes to their entry", async () => {
     const res = await catchAllFetch("/api/hello");
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe("hello");
+  });
+
+  it("matches a route with non-ASCII characters on the percent-encoded pathname", async () => {
+    const res = await catchAllFetch("/api/café");
     expect(res.status).toBe(200);
     expect(await res.text()).toBe("hello");
   });
