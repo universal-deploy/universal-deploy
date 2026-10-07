@@ -1,5 +1,13 @@
 # @universal-deploy/node
 
+## 0.1.13
+
+### Patch Changes
+
+- f9de08a: Set `NODE_ENV` before loading the user server entry.
+- Updated dependencies [f5c5505]
+  - @universal-deploy/store@0.3.0
+
 ## 0.1.12
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @universal-deploy/netlify
 
+## 0.2.4
+
+### Patch Changes
+
+- Updated dependencies [f5c5505]
+  - @universal-deploy/store@0.3.0
+
 ## 0.2.3
 
 ### Patch Changes
