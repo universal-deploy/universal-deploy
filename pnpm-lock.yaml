@@ -30,8 +30,8 @@ importers:
   examples/app-cloudflare:
     dependencies:
       '@universal-middleware/core':
-        specifier: ^0.4.18
-        version: 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
+        specifier: ^0.5.0
+        version: 0.5.0(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
       awesome-framework:
         specifier: 0.0.0
         version: link:../../tests/awesome-framework
@@ -61,8 +61,8 @@ importers:
   examples/app-netlify:
     dependencies:
       '@universal-middleware/core':
-        specifier: ^0.4.18
-        version: 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
+        specifier: ^0.5.0
+        version: 0.5.0(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
       awesome-framework:
         specifier: 0.0.0
         version: link:../../tests/awesome-framework
@@ -114,11 +114,11 @@ importers:
   examples/app-vercel:
     dependencies:
       '@universal-middleware/core':
-        specifier: ^0.4.18
-        version: 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+        specifier: ^0.5.0
+        version: 0.5.0(h3@1.15.11)(srvx@0.11.22)
       '@universal-middleware/srvx':
-        specifier: ^0.1.3
-        version: 0.1.3(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+        specifier: ^0.2.0
+        version: 0.2.0(h3@1.15.11)(srvx@0.11.22)
       awesome-framework:
         specifier: 0.0.0
         version: link:../../tests/awesome-framework
@@ -137,7 +137,7 @@ importers:
         version: 8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2)
       vite-plugin-vercel:
         specifier: ^11.1.1
-        version: 11.1.1(h3@1.15.11)(hono@4.13.0)(rollup@4.53.5)(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
+        version: 11.1.1(h3@1.15.11)(rollup@4.53.5)(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
 
   examples/tanstack-start:
     dependencies:
@@ -222,7 +222,7 @@ importers:
         version: 8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2)
       vite-plugin-vercel:
         specifier: ^11.1.1
-        version: 11.1.1(rollup@4.53.5)(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
+        version: 11.1.1(h3@1.15.11)(rollup@4.53.5)(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       web-vitals:
         specifier: ^5.3.0
         version: 5.3.0
@@ -273,9 +273,6 @@ importers:
 
   packages/store:
     dependencies:
-      rou3:
-        specifier: ^0.8.1
-        version: 0.8.1
       srvx:
         specifier: '*'
         version: 0.12.5
@@ -308,14 +305,14 @@ importers:
         specifier: workspace:^
         version: link:../store
       '@universal-middleware/express':
-        specifier: ^0.4.31
-        version: 0.4.31(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
+        specifier: ^0.5.0
+        version: 0.5.0(h3@1.15.11)(srvx@0.12.5)
       magic-string:
         specifier: ^0.30.21
         version: 0.30.21
       rou3:
-        specifier: ^0.8.1
-        version: 0.8.1
+        specifier: ^1.0.0
+        version: 1.0.0
     devDependencies:
       '@types/node':
         specifier: ^22.20.1
@@ -339,14 +336,14 @@ importers:
         specifier: workspace:^
         version: link:../../packages/store
       '@universal-middleware/core':
-        specifier: ^0.4.18
-        version: 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
+        specifier: ^0.5.0
+        version: 0.5.0(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
       '@universal-middleware/express':
-        specifier: ^0.4.31
-        version: 0.4.31(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
+        specifier: ^0.5.0
+        version: 0.5.0(h3@1.15.11)(srvx@0.12.5)
       '@universal-middleware/srvx':
-        specifier: ^0.1.3
-        version: 0.1.3(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
+        specifier: ^0.2.0
+        version: 0.2.0(h3@1.15.11)(srvx@0.12.5)
     devDependencies:
       '@types/node':
         specifier: ^22.20.1
@@ -2941,14 +2938,49 @@ packages:
       srvx:
         optional: true
 
+  '@universal-middleware/core@0.5.0':
+    resolution: {integrity: sha512-koHWIE/tRlPETVwL/7ROi7mReTfGKqicNhc0XlTpMhRHvpdhCof0pPw5vTAYcQQDLTenF/ZXBYRUqwvQiKV/IQ==}
+    peerDependencies:
+      '@cloudflare/workers-types': ^5.20261004.1
+      '@hattip/core': ^0.0.49
+      '@types/express': ^4 || ^5
+      '@webroute/route': ^0.8.0
+      elysia: ^1.4.30
+      fastify: ^5.12.5
+      h3: ^1.15.11
+      hono: ^4.13.13
+      srvx: '>=0.8'
+    peerDependenciesMeta:
+      '@cloudflare/workers-types':
+        optional: true
+      '@hattip/core':
+        optional: true
+      '@types/express':
+        optional: true
+      '@webroute/route':
+        optional: true
+      elysia:
+        optional: true
+      fastify:
+        optional: true
+      h3:
+        optional: true
+      hono:
+        optional: true
+      srvx:
+        optional: true
+
   '@universal-middleware/express@0.4.31':
     resolution: {integrity: sha512-GOgisGh88KE+J4FGHBSI7pYFkrux3KWy1pVw5WfiWWgraM6lwlfV2Bu6NlaobfVmPGAhU/ZVz0XO1mV76UldSQ==}
 
-  '@universal-middleware/node@0.2.2':
-    resolution: {integrity: sha512-QLovBNvsmKCUMd29IOCJchft7JdAPi5/ConbXxg2Z1a6Yl0lG7M/heCYvjesvUcrg4gPCUWowBZAjwPp4Z6uqQ==}
+  '@universal-middleware/express@0.5.0':
+    resolution: {integrity: sha512-67AuZOVYjnYdemY7b14LaM/rQ9nD2T2AeNr8jQORD3uxQspiZMxSvAa0O3Jt5ZSivpSasmfNFouE8d0GndthGQ==}
 
-  '@universal-middleware/srvx@0.1.3':
-    resolution: {integrity: sha512-R45DiS878ez4xxP6Q9lSWK96RfjQ9OiDpgXLLwp2IQTf4W9d4Mx12NKPegyIPJG6ucGDJx+KWnq84tOtXRK8nQ==}
+  '@universal-middleware/node@0.2.5':
+    resolution: {integrity: sha512-r3XeqVIM72QL7Hitqsqp4+3cugpAN5s+EPftQx+Mp3HWzK0vent30godFlCbyxgqJwM4O1k3/gBaaWShNouEHA==}
+
+  '@universal-middleware/srvx@0.2.0':
+    resolution: {integrity: sha512-GXRB0/Re3Z7MrbfpXycKFlWRCIslbZ/KzBRYE0lgEty0wq1aapHRiYdjPjoxaGMSYhyzC7TZqET9/npCnxQ6HA==}
 
   '@vercel/build-utils@13.36.3':
     resolution: {integrity: sha512-2f6RhmPYLiQjAJltaq9WPsRNdnzos0bWShL/AbYLXoydBVszlX8H/5w9rJ23nqPmtGjbDfZ9kLLGuAdyftvcTA==}
@@ -3080,121 +3112,145 @@ packages:
     resolution: {integrity: sha512-/EKnnqwvN7xYoVDhQEIEJTdPDwGW1wkFz/2Eku3ES/IJd4lcQh/OaIDFBmoJKvpe12enrb1TIoYh1fxasGXolA==}
     cpu: [arm64]
     os: [android]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-darwin-arm64@0.8.3':
     resolution: {integrity: sha512-DFAOliF5YIPv3ayNHGOJhIun6Af4kMaL/YXxf8ZtD1qrOIMFnX/AQBhwfvLalhwmmxuGA8AUteaKRHBvdKZFVA==}
     cpu: [arm64]
     os: [darwin]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-darwin-x64@0.8.3':
     resolution: {integrity: sha512-WlMh4/oEibaTzE9j5Zq8qnsrH4Ii4kWdcDv/Pj2Rb/MYSrKghtg+bxbWpPe/6zJD21p9zZBApQUxl8ECpZOJuQ==}
     cpu: [x64]
     os: [darwin]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-freebsd-x64@0.8.3':
     resolution: {integrity: sha512-hoDOpPP0FTxPSD+6w0Gs4p8iL1yXe6jjIXcdzNxyT1KE6B3JI6O0gTIWQISJ+8QyNpNjIwBb7nHCdRavktJM6A==}
     cpu: [x64]
     os: [freebsd]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-linux-arm-gnu@0.8.3':
     resolution: {integrity: sha512-nNW0GGMJyF04pK4A7Kq7WAYtUWU9uI5ugDAoXl9yHpd3IIZ8UI+zFlM01e+ZGWnQcdxYYLumeRe/EjzZT9bVfQ==}
     cpu: [arm]
     os: [linux]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-linux-arm-musl@0.8.3':
     resolution: {integrity: sha512-/jpxKhO8AV5TmXgT3R2Gv3YctKRUhyDzd5bQw8TiJ3O4z7qerHzoW2kE40fPAO3L434/IZtZbdhr8HuOqiwECA==}
     cpu: [arm]
     os: [linux]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-linux-arm64-gnu@0.8.3':
     resolution: {integrity: sha512-CYhLJfnCknabfLvUjsanxC5s3BBtZHUwfzdDL7GcqShIRQh2qqgG7pPfFrFJ6Jp56kkjKXkfluFGn9nnIv0nZg==}
     cpu: [arm64]
     os: [linux]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-linux-arm64-musl@0.8.3':
     resolution: {integrity: sha512-c6gEdnI0MgA7/rVw6CACMciSbAcxVwLyD/jSBbMLWUeqqbysCNGrGPAHdpSaadpz3W1bd+OdXt9XWjfm66708w==}
     cpu: [arm64]
     os: [linux]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-linux-x64-gnu@0.8.3':
     resolution: {integrity: sha512-CRVZ9Rw5lIah/PpWeShWv7XiUCMY15N6rZRA2sEZrQvc5Az7Dv9/wsDMa6oBMkfQLXuDkFo4G1QOYyWbebjejg==}
     cpu: [x64]
     os: [linux]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-linux-x64-musl@0.8.3':
     resolution: {integrity: sha512-G12Nhecjmv7OlbCX6Y4HU4wYYePd111kTE+yTjbitnt+P3m8bNegtYG4ZGo4scGTq8cKsLF4xcda1XNzCUA6nQ==}
     cpu: [x64]
     os: [linux]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-win32-arm64@0.8.3':
     resolution: {integrity: sha512-i8bpXWaMlik9DvFl+89emEx3RZFtSd21Vlt0UrnPvUC7h8NGElP2SwQcdcG+pPmihFIYJAoIuJLw7YdQcFcDkA==}
     cpu: [arm64]
     os: [win32]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-codegen/binding-win32-x64@0.8.3':
     resolution: {integrity: sha512-vlYymeTSsx+qxZoNvdl6KehgYDaQC4Sk/9KUnM3V2mriyCwSdhW7lqdpQGl+RLGsDTxyuRGjzGIjgRWk3lohmA==}
     cpu: [x64]
     os: [win32]
+    deprecated: yuku-codegen is pure JavaScript since 0.14
 
   '@yuku-parser/binding-android-arm64@0.8.3':
     resolution: {integrity: sha512-vySYRsMeul9ssvxeHdxgS9ZUIcq7gqljWNqgokjJE0uQWvVvOprihJ6hOsiifVqWsla0BMc3vAFBvNS9QqCw7g==}
     cpu: [arm64]
     os: [android]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-darwin-arm64@0.8.3':
     resolution: {integrity: sha512-+wpB/wqhiZ685Y77I+lj6v9pHSAJ3Y+QMHJmvch0Q0ahIMbNwtKk3s54MhtjCMKO1qpjPbyN/PjuHDg2hbKaVQ==}
     cpu: [arm64]
     os: [darwin]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-darwin-x64@0.8.3':
     resolution: {integrity: sha512-jKqiWejj4zVy7pPtEGu4/Ty+pG1h7ooQOXIkm7shKZTSwTU9X8X+eoH11uIeKHZi2SQWV0GhNz0J56eerseysQ==}
     cpu: [x64]
     os: [darwin]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-freebsd-x64@0.8.3':
     resolution: {integrity: sha512-FC7zSwzFzd4z9bsId07CiHLR+Iw6yW/LzIQhL5AUtPUuVXLgEyx0rilgbRUYkl1CT3GJcLpkh63WuPZUSgCDzw==}
     cpu: [x64]
     os: [freebsd]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-linux-arm-gnu@0.8.3':
     resolution: {integrity: sha512-So61j88b9/ygDnUPlWCm1EUPw4HSxAyDjrNHKgud5N3aRDQ3kw94nW7TriXbo7GBXID9oBHCMNm1r1Fof/Df5Q==}
     cpu: [arm]
     os: [linux]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-linux-arm-musl@0.8.3':
     resolution: {integrity: sha512-Nmnn20yJvSSKL8ZdtqReBRSGCDkSMqR5jEk/Sk/cdIdZmqVD49Z6M7w2GbMjdrxMI1MBPbsWFMMWxa93cd5t5g==}
     cpu: [arm]
     os: [linux]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-linux-arm64-gnu@0.8.3':
     resolution: {integrity: sha512-Lfgw7AXJ0rxu6BMPGgfc8HLJWEIr8BHhCzcQp/75k+NM90uCLkHlBNqIg/K42KlSvBgAvu9euOvjdswib+4qJA==}
     cpu: [arm64]
     os: [linux]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-linux-arm64-musl@0.8.3':
     resolution: {integrity: sha512-cfRyu87xsJ0tFkHNsnMC4Rq6+xsFJ6i2dc4VAH52d2qLvykEJU/Mdi3ul1O2PyOApX/LoLT3uQZ0fWs3D5XE4w==}
     cpu: [arm64]
     os: [linux]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-linux-x64-gnu@0.8.3':
     resolution: {integrity: sha512-GcQQCUuYxbm6P1n+io/A50rvWKDeWHutIp6rW0ycDOZuEQjOb8hDVgS88+NDyOnd9FfS0/Z6GXopcRFDyKpzOg==}
     cpu: [x64]
     os: [linux]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-linux-x64-musl@0.8.3':
     resolution: {integrity: sha512-rMkImBGZzg7GZlj8krYtdiezyjYI4igjKWMut5T65jHyNWFigMQrEpn9mDIBflloW9FKhGE3mN6yTZ/N+4HRwg==}
     cpu: [x64]
     os: [linux]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-win32-arm64@0.8.3':
     resolution: {integrity: sha512-/2Pl2cAzCXWxah8FqJapEj/ikpt9cEutEZFCa0hnbfrshkn5+C+aBM3ZDq62d1jsgQjBMmqr5HVhJUA4OAG/Tg==}
     cpu: [arm64]
     os: [win32]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-parser/binding-win32-x64@0.8.3':
     resolution: {integrity: sha512-Ntnvjoan9jnfLhn7Kn3h8j/bhsbVdQSVmKUqFULKtmwImLCJVHOJbLL4qbEJyrOQ7r/FBL1/c/dRvx/AQWzzXg==}
     cpu: [x64]
     os: [win32]
+    deprecated: yuku-parser runs on yuku-core since 0.14
 
   '@yuku-toolchain/types@0.8.3':
     resolution: {integrity: sha512-9LN3HYs3A9qSPVFunsxlbfwBcUgexti3TmhOzIxB/UH8zFuaHQJXTRDcN17DW6cp1GsyZtiZA7f18uIra36Jag==}
@@ -5456,6 +5512,10 @@ packages:
 
   rou3@0.8.1:
     resolution: {integrity: sha512-ePa+XGk00/3HuCqrEnK3LxJW7I0SdNg6EFzKUJG73hMAdDcOUC/i/aSz7LSDwLrGr33kal/rqOGydzwl6U7zBA==}
+
+  rou3@1.0.0:
+    resolution: {integrity: sha512-ySeaQkSrua+ut9g+65I7FHqOFBaY8tV0FmccXItoq0q21se32Q3u4YiW7/RqXSosWgYJaaKwRHXy3BST9PeCNQ==}
+    engines: {node: '>=20.19.0'}
 
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
@@ -8875,12 +8935,12 @@ snapshots:
     optionalDependencies:
       srvx: 0.12.5
 
-  '@universal-deploy/vite@0.1.10(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
+  '@universal-deploy/vite@0.1.10(h3@1.15.11)(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
       '@universal-deploy/netlify': 0.2.2(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       '@universal-deploy/node': 0.1.9(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       '@universal-deploy/store': 0.2.1(srvx@0.11.22)
-      '@universal-middleware/express': 0.4.31(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+      '@universal-middleware/express': 0.4.31(h3@1.15.11)(srvx@0.11.22)
       magic-string: 0.30.21
       rou3: 0.8.1
     optionalDependencies:
@@ -8896,12 +8956,12 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-deploy/vite@0.1.10(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
+  '@universal-deploy/vite@0.1.10(h3@1.15.11)(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
       '@universal-deploy/netlify': 0.2.2(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       '@universal-deploy/node': 0.1.9(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       '@universal-deploy/store': 0.2.1(srvx@0.12.5)
-      '@universal-middleware/express': 0.4.31(srvx@0.12.5)
+      '@universal-middleware/express': 0.4.31(h3@1.15.11)(srvx@0.12.5)
       magic-string: 0.30.21
       rou3: 0.8.1
     optionalDependencies:
@@ -8917,16 +8977,23 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-middleware/core@0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)':
+  '@universal-middleware/core@0.4.18(h3@1.15.11)(srvx@0.11.22)':
     dependencies:
       regexparam: 3.0.0
       tough-cookie: 6.0.2
     optionalDependencies:
       h3: 1.15.11
-      hono: 4.13.0
       srvx: 0.11.22
 
-  '@universal-middleware/core@0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)':
+  '@universal-middleware/core@0.4.18(h3@1.15.11)(srvx@0.12.5)':
+    dependencies:
+      regexparam: 3.0.0
+      tough-cookie: 6.0.2
+    optionalDependencies:
+      h3: 1.15.11
+      srvx: 0.12.5
+
+  '@universal-middleware/core@0.5.0(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)':
     dependencies:
       regexparam: 3.0.0
       tough-cookie: 6.0.2
@@ -8935,17 +9002,26 @@ snapshots:
       hono: 4.13.0
       srvx: 0.12.5
 
-  '@universal-middleware/core@0.4.18(srvx@0.12.5)':
+  '@universal-middleware/core@0.5.0(h3@1.15.11)(srvx@0.11.22)':
     dependencies:
       regexparam: 3.0.0
       tough-cookie: 6.0.2
     optionalDependencies:
+      h3: 1.15.11
+      srvx: 0.11.22
+
+  '@universal-middleware/core@0.5.0(h3@1.15.11)(srvx@0.12.5)':
+    dependencies:
+      regexparam: 3.0.0
+      tough-cookie: 6.0.2
+    optionalDependencies:
+      h3: 1.15.11
       srvx: 0.12.5
 
-  '@universal-middleware/express@0.4.31(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)':
+  '@universal-middleware/express@0.4.31(h3@1.15.11)(srvx@0.11.22)':
     dependencies:
-      '@universal-middleware/core': 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
-      '@universal-middleware/node': 0.2.2(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+      '@universal-middleware/core': 0.4.18(h3@1.15.11)(srvx@0.11.22)
+      '@universal-middleware/node': 0.2.5(h3@1.15.11)(srvx@0.11.22)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -8957,10 +9033,10 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-middleware/express@0.4.31(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)':
+  '@universal-middleware/express@0.4.31(h3@1.15.11)(srvx@0.12.5)':
     dependencies:
-      '@universal-middleware/core': 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
-      '@universal-middleware/node': 0.2.2(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
+      '@universal-middleware/core': 0.4.18(h3@1.15.11)(srvx@0.12.5)
+      '@universal-middleware/node': 0.2.5(h3@1.15.11)(srvx@0.12.5)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -8972,10 +9048,10 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-middleware/express@0.4.31(srvx@0.12.5)':
+  '@universal-middleware/express@0.5.0(h3@1.15.11)(srvx@0.12.5)':
     dependencies:
-      '@universal-middleware/core': 0.4.18(srvx@0.12.5)
-      '@universal-middleware/node': 0.2.2(srvx@0.12.5)
+      '@universal-middleware/core': 0.5.0(h3@1.15.11)(srvx@0.12.5)
+      '@universal-middleware/node': 0.2.5(h3@1.15.11)(srvx@0.12.5)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -8987,9 +9063,9 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-middleware/node@0.2.2(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)':
+  '@universal-middleware/node@0.2.5(h3@1.15.11)(srvx@0.11.22)':
     dependencies:
-      '@universal-middleware/core': 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
+      '@universal-middleware/core': 0.5.0(h3@1.15.11)(srvx@0.11.22)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -9001,9 +9077,9 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-middleware/node@0.2.2(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)':
+  '@universal-middleware/node@0.2.5(h3@1.15.11)(srvx@0.12.5)':
     dependencies:
-      '@universal-middleware/core': 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
+      '@universal-middleware/core': 0.5.0(h3@1.15.11)(srvx@0.12.5)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -9015,9 +9091,9 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-middleware/node@0.2.2(srvx@0.12.5)':
+  '@universal-middleware/srvx@0.2.0(h3@1.15.11)(srvx@0.11.22)':
     dependencies:
-      '@universal-middleware/core': 0.4.18(srvx@0.12.5)
+      '@universal-middleware/core': 0.5.0(h3@1.15.11)(srvx@0.11.22)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -9029,23 +9105,9 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-middleware/srvx@0.1.3(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)':
+  '@universal-middleware/srvx@0.2.0(h3@1.15.11)(srvx@0.12.5)':
     dependencies:
-      '@universal-middleware/core': 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)
-    transitivePeerDependencies:
-      - '@cloudflare/workers-types'
-      - '@hattip/core'
-      - '@types/express'
-      - '@webroute/route'
-      - elysia
-      - fastify
-      - h3
-      - hono
-      - srvx
-
-  '@universal-middleware/srvx@0.1.3(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)':
-    dependencies:
-      '@universal-middleware/core': 0.4.18(h3@1.15.11)(hono@4.13.0)(srvx@0.12.5)
+      '@universal-middleware/core': 0.5.0(h3@1.15.11)(srvx@0.12.5)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -11716,6 +11778,8 @@ snapshots:
 
   rou3@0.8.1: {}
 
+  rou3@1.0.0: {}
+
   run-parallel@1.2.0:
     dependencies:
       queue-microtask: 1.2.3
@@ -12384,11 +12448,11 @@ snapshots:
       - tsx
       - yaml
 
-  vite-plugin-vercel@11.1.1(h3@1.15.11)(hono@4.13.0)(rollup@4.53.5)(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2)):
+  vite-plugin-vercel@11.1.1(h3@1.15.11)(rollup@4.53.5)(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2)):
     dependencies:
       '@manypkg/find-root': 3.1.0
       '@universal-deploy/store': 0.2.1(srvx@0.11.22)
-      '@universal-deploy/vite': 0.1.10(h3@1.15.11)(hono@4.13.0)(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
+      '@universal-deploy/vite': 0.1.10(h3@1.15.11)(srvx@0.11.22)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       '@vercel/build-utils': 13.36.3
       '@vercel/nft': 1.10.2(rollup@4.53.5)
       '@vercel/routing-utils': 6.4.1
@@ -12415,11 +12479,11 @@ snapshots:
       - srvx
       - supports-color
 
-  vite-plugin-vercel@11.1.1(rollup@4.53.5)(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2)):
+  vite-plugin-vercel@11.1.1(h3@1.15.11)(rollup@4.53.5)(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2)):
     dependencies:
       '@manypkg/find-root': 3.1.0
       '@universal-deploy/store': 0.2.1(srvx@0.12.5)
-      '@universal-deploy/vite': 0.1.10(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
+      '@universal-deploy/vite': 0.1.10(h3@1.15.11)(srvx@0.12.5)(vite@8.2.0(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.2))
       '@vercel/build-utils': 13.36.3
       '@vercel/nft': 1.10.2(rollup@4.53.5)
       '@vercel/routing-utils': 6.4.1

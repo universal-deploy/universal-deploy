@@ -21,7 +21,7 @@ This repository is a POC that solves the issue 1 and 3 of [Netlify's RFC](https:
 
 ### Features
 
-- **Universal Routing**: Uses a common routing format (`rou3`) that is understood by all participants.
+- **Universal Routing**: Uses a common routing format (`rou3` v0.12+ syntax, aligned with URLPattern) that is understood by all participants.
 - **Minimal Conventions**: Low-level utilities that are easy to adopt and don't get in the way of framework-specific logic.
 
 

@@ -32,7 +32,8 @@ export interface EntryMeta {
   /**
    * Route pattern(s) for this entry.
    *
-   * Should be a valid {@link https://github.com/h3js/rou3 | rou3} pattern.
+   * Should be a valid {@link https://github.com/h3js/rou3 | rou3} v0.12+ (1.x) pattern. The syntax is aligned with
+   * URLPattern: `*` matches the rest of the path, `/` included.
    */
   route: string | string[];
   /**

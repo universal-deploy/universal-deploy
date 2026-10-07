@@ -144,7 +144,7 @@ export function catchAll(): Plugin {
           );
         }
 
-        return generateCode(entries, compileRouterToString(router, "findRoute"));
+        return generateCode(entries, compileRouterToString(router, { functionName: "findRoute" }));
       },
     },
   };

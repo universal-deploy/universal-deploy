@@ -21,7 +21,6 @@
     "vite": "^8.2.0"
   },
   "dependencies": {
-    "rou3": "^0.8.1",
     "srvx": "*"
   },
   "peerDependencies": {

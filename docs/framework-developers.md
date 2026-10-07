@@ -49,7 +49,7 @@ addEntry({
 | Option | Type | Description |
 | :--- | :--- | :--- |
 | `id` | `string` | Module identifier (filesystem path or virtual module). |
-| `route` | `string \| string[]` | Route pattern(s) (using [rou3](https://github.com/h3js/rou3) syntax). |
+| `route` | `string \| string[]` | Route pattern(s), using [rou3](https://github.com/h3js/rou3) v0.12+ (1.x) syntax, aligned with URLPattern. |
 | `method` | `string \| string[]` | (Optional) HTTP method(s) (e.g., `"GET"`, `["POST", "PUT"]`). |
 | `environment` | `string` | (Optional) The Vite environment for this entry (defaults to `"ssr"`). |
 

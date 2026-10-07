@@ -12,7 +12,7 @@ By default, most frameworks handle their own routing. However, using `devServer(
 
 The `catchAll()` plugin is a utility that creates a virtual module named `virtual:ud:catch-all`. This module acts as a central aggregator for all registered entries in the global store.
 
-It automatically generates a high-performance router using [rou3](https://github.com/h3js/rou3) based on the `route` and `method` metadata you provided during registration. The resulting module exports a `default.fetch(request)` handler that efficiently matches incoming requests and dispatches them to the correct entry point.
+It automatically generates a high-performance router using [rou3](https://github.com/h3js/rou3) based on the `route` and `method` metadata you provided during registration. The resulting module exports a `default.fetch(request)` handler that efficiently matches incoming requests and dispatches them to the correct entry point. Requests are matched on their pathname as sent, percent-encoded, so a `/café` route matches `/caf%C3%A9`.
 
 This plugin is required when using `devServer()`, but it's also invaluable for deployment providers that only support a single server entry point (such as Netlify Functions or AWS Lambda), as it handles all the routing logic for you out of the box.
 
