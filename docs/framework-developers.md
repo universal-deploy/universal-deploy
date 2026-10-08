@@ -122,6 +122,24 @@ addEntry({
 
 Just ensure you have a Vite plugin that resolves and loads `virtual:my-framework-entry`.
 
+### Custom Server Entry
+
+By default, `universalDeploy()` uses the server entry of `@universal-deploy/node`. Use `entry` to build your own server entry instead, for example an AWS Lambda handler:
+
+```ts
+universalDeploy({ entry: "./server/lambda.ts" });
+```
+
+The entry is expected to forward requests to `virtual:ud:catch-all` (directly or indirectly), and the build warns if it doesn't.
+
+If the entry handles requests itself instead, for example because it's the user's own server and your framework also runs it in development, set `catchAll: false`:
+
+```ts
+universalDeploy({ entry: { id: "./server/index.ts", catchAll: false } });
+```
+
+The `devServer()` plugin is then not added: your framework is responsible for serving requests in development.
+
 ## Why adopt this?
 
 1.  **Zero-Config for Users**: Users don't need to configure adapters or deployment-specific settings. They just add a deployment plugin (like `@netlify/vite-plugin`) and it "just works" because your framework has already provided the necessary metadata.

@@ -12,13 +12,25 @@ type NodePluginOptions = Parameters<typeof node>[0];
 /**
  * Automatically enables the node adapter if no other deployment target (Vercel, Cloudflare, Netlify) is detected.
  */
-export function auto(options?: { node?: NodePluginOptions; entry?: string }): Plugin[] {
+export function auto(options?: {
+  node?: NodePluginOptions;
+  /**
+   * Custom server entry, used instead of the node adapter's server entry.
+   *
+   * By default, it's expected to forward requests to `virtual:ud:catch-all`. Set `catchAll: false` if it handles
+   * requests itself: `devServer()` is then not added, and the framework serves requests in development (e.g. by
+   * running the entry).
+   */
+  entry?: string | { id: string; catchAll?: boolean };
+}): Plugin[] {
   const instance = Symbol("instance");
+  const entry = typeof options?.entry === "string" ? { id: options.entry } : options?.entry;
+  const usesCatchAll = entry?.catchAll ?? true;
   return [
     catchAll(),
-    devServer(),
-    ...(options?.entry
-      ? [target(options.entry)]
+    ...(usesCatchAll ? [devServer()] : []),
+    ...(entry
+      ? [target(entry.id, { catchAll: usesCatchAll })]
       : [
           // Enable node adapter only if no other deployment target has been found
           ...node(options?.node).map((p) => {
