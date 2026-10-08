@@ -2,9 +2,11 @@ import { catchAllEntry } from "@universal-deploy/store";
 import type { BuildEnvironmentOptions, Plugin } from "vite";
 
 /**
- * A generic target plugin that overrides the server entry with a custom wrapper.
+ * A generic target plugin that overrides the server entry with a custom entry.
+ *
+ * @param catchAll whether the entry forwards requests to `virtual:ud:catch-all` (default: `true`)
  */
-export default function target(entry: string): Plugin {
+export default function target(entry: string, { catchAll = true }: { catchAll?: boolean } = {}): Plugin {
   let resolvedEntry: string | undefined;
   return {
     name: "ud:target:emit",
@@ -46,6 +48,8 @@ export default function target(entry: string): Plugin {
     },
     buildEnd(error) {
       if (error) return;
+      // The entry handles requests itself
+      if (!catchAll) return;
       const moduleIds = [...this.getModuleIds()];
       // Only check the build that bundles the entry
       if (!resolvedEntry || !moduleIds.includes(resolvedEntry)) return;

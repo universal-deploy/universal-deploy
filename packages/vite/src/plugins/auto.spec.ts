@@ -90,4 +90,16 @@ describe("auto() plugin", () => {
     expect(nodePlugins.some((p) => p.name === "ud:node:emit:disabled")).toBe(true);
     expect(nodePlugins.some((p) => p.name === "ud:node:emit")).toBe(true);
   });
+
+  it("adds devServer() with a custom entry", () => {
+    const names = auto({ entry: "./entry.js" }).map((p) => p.name);
+    expect(names).toContain("universal-deploy:dev-server");
+    expect(names).toContain("ud:target:emit");
+  });
+
+  it("doesn't add devServer() if the custom entry handles requests itself (catchAll: false)", () => {
+    const names = auto({ entry: { id: "./entry.js", catchAll: false } }).map((p) => p.name);
+    expect(names).not.toContain("universal-deploy:dev-server");
+    expect(names).toContain("ud:target:emit");
+  });
 });
