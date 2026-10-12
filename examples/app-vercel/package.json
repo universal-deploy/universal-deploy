@@ -16,8 +16,8 @@
     "vite-plugin-vercel": "^11.1.1"
   },
   "dependencies": {
-    "@universal-middleware/core": "^0.5.0",
-    "@universal-middleware/srvx": "^0.2.0",
+    "@universal-middleware/core": "^0.7.0",
+    "@universal-middleware/srvx": "^0.3.0",
     "awesome-framework": "0.0.0"
   }
 }
