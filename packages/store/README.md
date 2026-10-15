@@ -53,7 +53,7 @@ Creates a `virtual:ud:catch-all` entry that aggregates all store entries and han
 
 #### `devServer`
 
-Adds development middleware that invokes the catch-all entry and returns the response to the client.
+Adds development middleware that invokes the catch-all entry and returns the response to the client. WebSocket connections are passed to the catch-all entry's `websocket` hooks.
 
 #### `compat`
 

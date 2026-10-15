@@ -31,3 +31,33 @@ Not covered: a runtime `static` pointing anywhere other than the directory this 
 precompressed, and a client built separately without `precompress` — both fall back to srvx's
 own static handling; and pages written by a pre-render step that runs no Vite build.
 Variants left behind by a removed encoding are never looked up.
+
+## WebSockets
+
+The default export of an entry registered with `route: "/**"` can define [crossws](https://crossws.h3.dev/) hooks as
+`websocket`, next to `fetch()`. Install `crossws` to use them: it's an optional peer dependency.
+
+```ts
+import type { ServerOptions } from "@universal-deploy/store";
+
+export default {
+  fetch(request: Request) {
+    return new Response("Hello");
+  },
+  websocket: {
+    upgrade(request) {
+      // Every WebSocket connection is passed to these hooks: reject the ones you don't handle
+      if (new URL(request.url).pathname !== "/ws") throw new Response("Not Found", { status: 404 });
+    },
+    message(peer, message) {
+      peer.send(`echo: ${message.text()}`);
+    },
+  },
+} satisfies ServerOptions;
+```
+
+In development, `devServer()` passes WebSocket connections to the same hooks, except Vite's HMR connections.
+
+On Bun and Deno, build the server with the runtime that runs it. `bun run build` runs Vite with Node.js, and a server
+built with Node.js can't serve WebSockets on Bun: it logs a warning and serves HTTP requests only. Use
+`bun --bun run build` instead. `deno run build` runs Vite with Deno.

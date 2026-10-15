@@ -23,16 +23,21 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
+    "crossws": "^0.4.4",
     "tsdown": "^0.22.14",
     "typescript": "^7.0.2",
     "vite": "^8.2.0",
     "vitest": "^3.2.7"
   },
   "peerDependencies": {
-    "vite": ">=7.1"
+    "vite": ">=7.1",
+    "crossws": ">=0.4.4"
   },
   "peerDependenciesMeta": {
     "vite": {
+      "optional": true
+    },
+    "crossws": {
       "optional": true
     }
   },

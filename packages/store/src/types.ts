@@ -1,3 +1,4 @@
+import type { Hooks } from "crossws";
 import type { Server, ServerOptions as SrvxServerOptions } from "srvx";
 
 export interface Store {
@@ -39,4 +40,11 @@ export interface Fetchable {
 export interface ServerOptions extends Omit<SrvxServerOptions, "manual"> {
   onCreate?: (server: Server) => unknown;
   onReady?: (server: Server) => unknown;
+  /**
+   * WebSocket hooks, handled by {@link https://crossws.h3.dev | crossws} in development (`devServer()`) and in
+   * production (`node()`). Requires `crossws` to be installed.
+   *
+   * Every upgrade request is passed to the hooks: use the `upgrade()` hook to reject the ones you don't handle.
+   */
+  websocket?: Partial<Hooks>;
 }

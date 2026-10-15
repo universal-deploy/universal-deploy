@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
+    "crossws": "^0.4.4",
     "tsdown": "^0.22.14",
     "type-predicate-generator": "^1.0.4",
     "typescript": "^7.0.2",
@@ -24,10 +25,14 @@
     "srvx": "*"
   },
   "peerDependencies": {
-    "srvx": "*"
+    "srvx": "*",
+    "crossws": ">=0.4.4"
   },
   "peerDependenciesMeta": {
     "srvx": {
+      "optional": true
+    },
+    "crossws": {
       "optional": true
     }
   },

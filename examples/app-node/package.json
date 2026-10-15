@@ -18,6 +18,7 @@
     "vite": "^8.2.0"
   },
   "dependencies": {
-    "awesome-framework": "0.0.0"
+    "awesome-framework": "0.0.0",
+    "crossws": "^0.4.4"
   }
 }

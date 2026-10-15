@@ -15,6 +15,7 @@
   "devDependencies": {
     "@types/node": "^22.20.1",
     "@universal-deploy/vite": "workspace:^",
+    "crossws": "^0.4.4",
     "tsdown": "^0.22.14",
     "typescript": "^7.0.2",
     "vite": "^8.2.0"

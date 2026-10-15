@@ -8,6 +8,8 @@ The `devServer()` plugin adds a development middleware to Vite that intercepts r
 
 By default, most frameworks handle their own routing. However, using `devServer()` provides out-of-the-box routing for any entry registered in the global store. This is particularly useful for **local emulation**: it ensures your development environment behaves exactly like your production environment by supporting features specific to deployment providers that also use `universal-deploy`.
 
+It also passes WebSocket connections to the catch-all entry's `websocket` hooks, see [WebSockets](./framework-developers.md#websockets).
+
 ## `catchAll()`
 
 The `catchAll()` plugin is a utility that creates a virtual module named `virtual:ud:catch-all`. This module acts as a central aggregator for all registered entries in the global store.

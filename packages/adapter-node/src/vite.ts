@@ -191,6 +191,8 @@ export function node(options?: {
                 resolve: {
                   // Do not mark import("@universal-deploy/node/server") as external as it contains a virtual module
                   noExternal: ["@universal-deploy/node"],
+                  // Optional peer dependency, only imported at runtime when the server entry defines `websocket`
+                  external: ["crossws"],
                 },
               },
             },

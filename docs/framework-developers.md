@@ -140,6 +140,32 @@ universalDeploy({ entry: { id: "./server/index.ts", catchAll: false } });
 
 The `devServer()` plugin is then not added: your framework is responsible for serving requests in development.
 
+### WebSockets
+
+The default export of an entry registered with `route: "/**"` can define [crossws](https://crossws.h3.dev/) hooks as `websocket`, next to `fetch()`:
+
+```ts
+// awesome-framework/server/render.ts
+import type { ServerOptions } from "@universal-deploy/store";
+
+export default {
+  fetch(request: Request) {
+    return new Response("Hello from Universal Deploy!");
+  },
+  websocket: {
+    upgrade(request) {
+      // Every WebSocket connection is passed to these hooks: reject the ones you don't handle
+      if (new URL(request.url).pathname !== "/ws") throw new Response("Not Found", { status: 404 });
+    },
+    message(peer, message) {
+      peer.send(`echo: ${message.text()}`);
+    },
+  },
+} satisfies ServerOptions;
+```
+
+`devServer()` and `@universal-deploy/node` serve them, which requires `crossws` to be installed (it's an optional peer dependency). Other deployment targets ignore `websocket`.
+
 ## Why adopt this?
 
 1.  **Zero-Config for Users**: Users don't need to configure adapters or deployment-specific settings. They just add a deployment plugin (like `@netlify/vite-plugin`) and it "just works" because your framework has already provided the necessary metadata.

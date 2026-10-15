@@ -38,8 +38,29 @@ async function startServer() {
   };
   const createStatic = staticMod.staticMiddleware ?? staticMod.serveStatic;
 
+  const plugins = [...(userServerEntry.plugins ?? [])];
+  const { websocket } = userServerEntry;
+  if (websocket) {
+    // `crossws` is an optional peer dependency, externalized by the node plugin: it's only loaded when
+    // the server entry defines `websocket`, and its export conditions pick the Node/Bun/Deno implementation.
+    const { plugin } = await import("crossws/server");
+    const runtime = "Bun" in globalThis ? "bun" : "Deno" in globalThis ? "deno" : "node";
+    plugins.push((server) => {
+      // The srvx adapter is picked at build time: e.g. `bun run build` runs Vite with Node.js, and crossws can't use
+      // srvx's Node.js adapter on Bun.
+      if (server.runtime !== runtime) {
+        console.warn(
+          `[@universal-deploy/node] WebSockets are disabled: the server was built with ${server.runtime} but runs on ${runtime}. Build it with ${runtime}${runtime === "bun" ? " (`bun --bun run build`)" : ""} to enable them.`,
+        );
+        return;
+      }
+      plugin(websocket)(server);
+    });
+  }
+
   const server = serveSrvx({
     ...userServerEntry,
+    plugins,
     gracefulShutdown: userServerEntry.gracefulShutdown ?? false,
     middleware: [
       ...(userServerEntry.middleware ?? []),
