@@ -120,6 +120,8 @@ describe("encodings order and selection", () => {
     expect(Object.keys(encodingsMap(gzipFirst))).toEqual(["gzip", "br"]);
     const response = await request({ dir, encodings: encodingsMap(gzipFirst) }, "br, gzip");
     expect(response.headers.get("content-encoding")).toBe("gzip");
+    // srvx closes the file it serves once the body is read to its end.
+    await response.arrayBuffer();
   });
 });
 
@@ -132,6 +134,8 @@ describe("serving", () => {
     expect(response.headers.get("content-encoding")).toBe("br");
     // The discriminator: an on-the-fly encode is chunked and carries no length.
     expect(response.headers.get("content-length")).toBe(String(variant.size));
+    // srvx closes the file it serves once the body is read to its end.
+    await response.arrayBuffer();
   });
 });
 
