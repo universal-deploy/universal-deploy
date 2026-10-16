@@ -79,12 +79,14 @@ function loadSecondCopy(): Promise<typeof import("./precompress.js")> {
   return import(distinctSpecifier);
 }
 
+/** Reads the body to its end, which is when srvx closes the file it serves. */
 async function request(options: ResolvedStaticOptions, encoding: string) {
   const middleware = staticMiddleware(options);
-  return middleware(
+  const response = await middleware(
     new Request("http://x/app.js", { headers: { "accept-encoding": encoding } }),
     () => new Response(null, { status: 404 }),
   );
+  return { headers: response.headers, body: Buffer.from(await response.arrayBuffer()) };
 }
 
 describe("precompress emission", () => {
@@ -120,8 +122,6 @@ describe("encodings order and selection", () => {
     expect(Object.keys(encodingsMap(gzipFirst))).toEqual(["gzip", "br"]);
     const response = await request({ dir, encodings: encodingsMap(gzipFirst) }, "br, gzip");
     expect(response.headers.get("content-encoding")).toBe("gzip");
-    // srvx closes the file it serves once the body is read to its end.
-    await response.arrayBuffer();
   });
 });
 
@@ -134,8 +134,6 @@ describe("serving", () => {
     expect(response.headers.get("content-encoding")).toBe("br");
     // The discriminator: an on-the-fly encode is chunked and carries no length.
     expect(response.headers.get("content-length")).toBe(String(variant.size));
-    // srvx closes the file it serves once the body is read to its end.
-    await response.arrayBuffer();
   });
 });
 
@@ -342,7 +340,7 @@ describe("lookup is enabled only for the reconciled directory", () => {
     });
     expect(options?.encodings).toBeUndefined();
     const response = await request(options as ResolvedStaticOptions, "br");
-    const body = Buffer.from(await response.arrayBuffer());
+    const { body } = response;
     const decoded =
       response.headers.get("content-encoding") === "br" ? brotliDecompressSync(body).toString() : body.toString();
     expect(decoded).toBe(COMPRESSIBLE);
