@@ -79,12 +79,14 @@ function loadSecondCopy(): Promise<typeof import("./precompress.js")> {
   return import(distinctSpecifier);
 }
 
+/** Reads the body to its end, which is when srvx closes the file it serves. */
 async function request(options: ResolvedStaticOptions, encoding: string) {
   const middleware = staticMiddleware(options);
-  return middleware(
+  const response = await middleware(
     new Request("http://x/app.js", { headers: { "accept-encoding": encoding } }),
     () => new Response(null, { status: 404 }),
   );
+  return { headers: response.headers, body: Buffer.from(await response.arrayBuffer()) };
 }
 
 describe("precompress emission", () => {
@@ -338,7 +340,7 @@ describe("lookup is enabled only for the reconciled directory", () => {
     });
     expect(options?.encodings).toBeUndefined();
     const response = await request(options as ResolvedStaticOptions, "br");
-    const body = Buffer.from(await response.arrayBuffer());
+    const { body } = response;
     const decoded =
       response.headers.get("content-encoding") === "br" ? brotliDecompressSync(body).toString() : body.toString();
     expect(decoded).toBe(COMPRESSIBLE);
