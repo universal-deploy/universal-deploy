@@ -15,8 +15,8 @@ function netlify(): Plugin[] {
       configEnvironment: {
         // Give some time to other plugins to declare an entry in the store
         order: "post",
-        handler(name, env) {
-          if (env.consumer !== "server" && name !== "ssr") return;
+        handler(name) {
+          if (name !== "ssr") return;
           const optionName = this.meta?.rolldownVersion ? "rolldownOptions" : "rollupOptions";
 
           return {
