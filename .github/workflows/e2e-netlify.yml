@@ -1,5 +1,8 @@
 name: E2E - Netlify
 on: pull_request
+permissions:
+  contents: read
+  statuses: read
 jobs:
   e2e:
     runs-on: ubuntu-latest
@@ -12,17 +15,29 @@ jobs:
       - run: pnpm install
       - run: pnpm exec playwright install chromium
       - run: pnpm run build
-      - name: Hold for Netlify
-        uses: magne4000/wait-for-netlify-action@v4
-        id: waitForDeployment
-        with:
-          site_id: '2c57d824-b734-40b4-837c-c71202c98b18'
-          max_timeout: 180
+      # Netlify reports the deploy preview URL as a commit status. Reading it only needs the default
+      # GITHUB_TOKEN, so this also works on PRs from forks, which don't get secrets.
+      - name: Wait for the Netlify deploy preview
+        id: preview
         env:
-          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          for _ in $(seq 60); do
+            status=$(gh api "repos/$REPO/commits/$SHA/status" \
+              --jq '.statuses[] | select(.context == "netlify/universal-deploy/deploy-preview") | "\(.state) \(.target_url)"' || true)
+            case "$status" in
+              success\ *) echo "url=${status#success }" >> "$GITHUB_OUTPUT"; exit 0 ;;
+              failure\ * | error\ *) echo "::error::Netlify deploy preview failed: ${status#* }"; exit 1 ;;
+            esac
+            sleep 5
+          done
+          echo "::error::Timed out waiting for the Netlify deploy preview"
+          exit 1
       - name: Test e2e deployed
         run: pnpm test:e2e
         working-directory: examples/app-netlify
         env:
-          BASE_URL: ${{ steps.waitForDeployment.outputs.url }}
+          BASE_URL: ${{ steps.preview.outputs.url }}
           NODE_ENV: production
