@@ -1,5 +1,11 @@
 # @universal-deploy/node
 
+## 0.1.14
+
+### Patch Changes
+
+- 1e409a0: `@universal-deploy/node` runs on `srvx` 1 (from 0.12).
+
 ## 0.1.13
 
 ### Patch Changes

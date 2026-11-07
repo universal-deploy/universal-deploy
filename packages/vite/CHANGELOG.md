@@ -1,5 +1,15 @@
 # @universal-deploy/vite
 
+## 0.2.3
+
+### Patch Changes
+
+- f9442e5: `devServer()` runs on `@universal-middleware/express` 0.6 (from 0.5), which matches Universal Middleware 0.7. It adapts requests and responses the same way; the 0.6 changes are to how `apply()` runs a list, which `devServer()` doesn't use.
+- Updated dependencies [99995b7]
+- Updated dependencies [1e409a0]
+  - @universal-deploy/netlify@0.2.5
+  - @universal-deploy/node@0.1.14
+
 ## 0.2.2
 
 ### Patch Changes

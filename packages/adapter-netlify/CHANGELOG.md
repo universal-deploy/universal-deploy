@@ -1,5 +1,11 @@
 # @universal-deploy/netlify
 
+## 0.2.5
+
+### Patch Changes
+
+- 99995b7: The Netlify adapter no longer overrides the input of server environments other than `ssr`, and it sets the `ssr` input from a `config` hook so other plugins can observe it during `configEnvironment`.
+
 ## 0.2.4
 
 ### Patch Changes
