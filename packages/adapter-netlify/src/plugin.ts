@@ -12,18 +12,21 @@ function netlify(): Plugin[] {
       applyToEnvironment(env) {
         return env.name === "ssr";
       },
-      configEnvironment: {
+      config: {
         // Give some time to other plugins to declare an entry in the store
         order: "post",
-        handler(name) {
-          if (name !== "ssr") return;
+        handler() {
           const optionName = this.meta?.rolldownVersion ? "rolldownOptions" : "rollupOptions";
 
           return {
-            build: {
-              [optionName]: {
-                input: {
-                  index: catchAllEntry,
+            environments: {
+              ssr: {
+                build: {
+                  [optionName]: {
+                    input: {
+                      index: catchAllEntry,
+                    },
+                  },
                 },
               },
             },
