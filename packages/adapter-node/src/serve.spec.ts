@@ -16,6 +16,12 @@ const execFileAsync = promisify(execFile);
  */
 const userEntry = `
 const env = globalThis.process.env;
+if (env.UD_TEST_FAIL_START) {
+  // What keeps Node alive after a failed start: an app's silent listener (Vike has one) and an open handle.
+  process.on("uncaughtException", () => {});
+  setInterval(() => {}, 1000);
+  throw new Error("refusing to start");
+}
 const atEvaluation = env[["NODE", "ENV"].join("_")] ?? null;
 export default {
   port: 0,
@@ -87,5 +93,13 @@ describe("built node entry", () => {
 
   it("keeps an explicitly provided NODE_ENV", async () => {
     expect(await run("development")).toEqual({ atEvaluation: "development", atReady: "development" });
+  });
+
+  it("exits with code 1 when the user entry throws while it loads", async () => {
+    const env = { ...process.env, UD_TEST_FAIL_START: "1" };
+    await expect(execFileAsync(process.execPath, [outFile], { env, timeout: 4_000 })).rejects.toMatchObject({
+      code: 1,
+      stderr: expect.stringContaining("refusing to start"),
+    });
   });
 });
