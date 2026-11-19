@@ -69,5 +69,11 @@ try {
   await startServer();
 } catch (error) {
   // An app's `uncaughtException` listener (Vike has one) would otherwise keep a failed start alive or exit 0.
-  process.stderr.write(`${inspect(error)}\n`, () => process.exit(1));
+  process.exitCode = 1;
+  let report = "The server failed to start, and its error could not be formatted";
+  try {
+    report = inspect(error);
+  } catch {}
+  process.stderr.write(`${report}\n`, () => process.exit(1));
+  setTimeout(() => process.exit(1), 5000).unref();
 }

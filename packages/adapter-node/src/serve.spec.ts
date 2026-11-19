@@ -20,7 +20,13 @@ if (env.UD_TEST_FAIL_START) {
   // What keeps Node alive after a failed start: an app's silent listener (Vike has one) and an open handle.
   process.on("uncaughtException", () => {});
   setInterval(() => {}, 1000);
-  throw new Error("refusing to start");
+  const error = new Error("refusing to start");
+  if (env.UD_TEST_FAIL_START === "unformattable") {
+    error[Symbol.for("nodejs.util.inspect.custom")] = () => {
+      throw new Error("format failed");
+    };
+  }
+  throw error;
 }
 const atEvaluation = env[["NODE", "ENV"].join("_")] ?? null;
 export default {
@@ -100,6 +106,13 @@ describe("built node entry", () => {
     await expect(execFileAsync(process.execPath, [outFile], { env, timeout: 4_000 })).rejects.toMatchObject({
       code: 1,
       stderr: expect.stringContaining("refusing to start"),
+    });
+  });
+
+  it("exits with code 1 when the startup error can't be formatted", async () => {
+    const env = { ...process.env, UD_TEST_FAIL_START: "unformattable" };
+    await expect(execFileAsync(process.execPath, [outFile], { env, timeout: 4_000 })).rejects.toMatchObject({
+      code: 1,
     });
   });
 });
