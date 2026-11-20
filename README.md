@@ -85,6 +85,7 @@ See the [Plugins documentation](./docs/plugins.md) for more details.
 
 ## See also
 
+- [Vite Deployment Metadata](https://github.com/vitejs/deployment-metadata)
 - [Netlify's RFC](https://github.com/vitejs/vite/discussions/20907)
   - [RFC: Mechanism to allow deployment providers to route requests to built environments](https://github.com/vitejs/ecosystem/issues/4)
   - [Align on Vite's intended scope to allow for framework-agnostic provider plugins](https://github.com/vitejs/ecosystem/issues/3)
