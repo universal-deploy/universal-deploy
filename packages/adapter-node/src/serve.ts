@@ -1,5 +1,6 @@
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { inspect } from "node:util";
 import type { Fetchable } from "@universal-deploy/store";
 import { type FetchHandler, type ServerMiddleware, serve as serveSrvx } from "srvx";
 import { type ResolvedStaticOptions, resolveStaticOptions } from "./static-options.js";
@@ -64,4 +65,15 @@ function assertFetchable(mod: unknown, id: string): Fetchable {
   return mod as Fetchable;
 }
 
-await startServer();
+try {
+  await startServer();
+} catch (error) {
+  // An app's `uncaughtException` listener (Vike has one) would otherwise keep a failed start alive or exit 0.
+  process.exitCode = 1;
+  let report = "The server failed to start, and its error could not be formatted";
+  try {
+    report = inspect(error);
+  } catch {}
+  process.stderr.write(`${report}\n`, () => process.exit(1));
+  setTimeout(() => process.exit(1), 5000).unref();
+}
