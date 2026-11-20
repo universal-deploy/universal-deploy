@@ -90,7 +90,7 @@ See the [Plugins documentation](./docs/plugins.md) for more details.
   - [Align on Vite's intended scope to allow for framework-agnostic provider plugins](https://github.com/vitejs/ecosystem/issues/3)
   - [RFC: Expose a server route manifest](https://github.com/vitejs/vite/discussions/21212)
 - Vike's journey (that led us to Universal Deploy)
-  - Introducing Universal Deploy — 🚧
+  - [Introducing Universal Deploy](https://vike.dev/blog/universal-deploy) *April 21, 2026*
   - [Introducing Photon](https://vike.dev/blog/photon) *October 28, 2025*
   - [Introducing `vike-server`](https://vike.dev/blog/vike-server) *March 26, 2025*
 
