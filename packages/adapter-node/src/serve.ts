@@ -50,12 +50,12 @@ async function startServer() {
     manual: true,
   });
 
-  userServerEntry.onCreate?.(server);
+  await userServerEntry.onCreate?.(server);
 
-  server.serve();
+  await server.serve();
   await server.ready();
 
-  userServerEntry.onReady?.(server);
+  await userServerEntry.onReady?.(server);
 }
 
 function assertFetchable(mod: unknown, id: string): Fetchable {
@@ -72,7 +72,7 @@ try {
   // Rethrown so Node's report and the app's listeners (error trackers, Vike's logger) still get the error.
   // A listener that swallows it (Vike's does) would otherwise let a failed start exit 0, or stay alive while work is pending.
   process.exitCode = 1;
-  server?.close(true);
   setTimeout(() => process.exit(1), 5000).unref();
+  server?.close(true).catch(() => {});
   throw error;
 }

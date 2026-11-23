@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { type AddressInfo, createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -20,18 +21,20 @@ if (env.UD_TEST_FAIL_START) {
   // Like Vike's listener: logs the error and leaves the exit code unset.
   process.on("uncaughtException", (error) => console.error(error));
   if (env.UD_TEST_FAIL_START === "pending-work") setInterval(() => {}, 1000);
-  if (env.UD_TEST_FAIL_START !== "on-ready") throw new Error("refusing to start");
+  if (env.UD_TEST_FAIL_START === "1" || env.UD_TEST_FAIL_START === "pending-work") throw new Error("refusing to start");
 }
 const atEvaluation = env[["NODE", "ENV"].join("_")] ?? null;
 export default {
-  port: 0,
+  port: Number(env.UD_TEST_PORT ?? 0),
   hostname: "127.0.0.1",
   silent: true,
   fetch: () => new Response("ok"),
   onReady: (server) => {
-    if (env.UD_TEST_FAIL_START === "on-ready") {
+    if (env.UD_TEST_FAIL_START === "on-ready" || env.UD_TEST_FAIL_START === "on-ready-async") {
       console.log(server.url);
-      throw new Error("refusing to start");
+      const error = new Error("refusing to start");
+      if (env.UD_TEST_FAIL_START === "on-ready-async") return Promise.reject(error);
+      throw error;
     }
     console.log(JSON.stringify({ atEvaluation, atReady: env[["NODE", "ENV"].join("_")] ?? null }));
     process.exit(0);
@@ -115,8 +118,11 @@ describe("built node entry", () => {
     });
   });
 
-  it("stops serving when onReady throws", async () => {
-    const env = { ...process.env, UD_TEST_FAIL_START: "on-ready" };
+  it.each([
+    ["throws", "on-ready"],
+    ["rejects", "on-ready-async"],
+  ])("stops serving when onReady %s", async (_, mode) => {
+    const env = { ...process.env, UD_TEST_FAIL_START: mode };
     const run = execFileAsync(process.execPath, [outFile], { env, timeout: 4_000 });
     const exitCode = run.catch((error) => error.code);
     let stdout = "";
@@ -129,5 +135,19 @@ describe("built node entry", () => {
     });
     await expect(fetch(stdout.trim())).rejects.toMatchObject({ cause: { code: "ECONNREFUSED" } });
     expect(await exitCode).toBe(1);
+  });
+
+  it("reports a port already in use once and exits with code 1", async () => {
+    const blocker = createServer();
+    await new Promise<void>((resolve) => blocker.listen(0, "127.0.0.1", resolve));
+    try {
+      const { port } = blocker.address() as AddressInfo;
+      const env = { ...process.env, UD_TEST_FAIL_START: "port-taken", UD_TEST_PORT: String(port) };
+      const error = await execFileAsync(process.execPath, [outFile], { env, timeout: 4_000 }).catch((error) => error);
+      expect(error.code).toBe(1);
+      expect(error.stderr.match(/EADDRINUSE: address already in use/g)).toHaveLength(1);
+    } finally {
+      blocker.close();
+    }
   });
 });
