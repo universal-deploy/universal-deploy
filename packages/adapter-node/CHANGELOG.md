@@ -1,5 +1,12 @@
 # @universal-deploy/node
 
+## 0.1.15
+
+### Patch Changes
+
+- dc0c911: The server stops accepting requests as soon as it fails to start, instead of serving them until it exits.
+- 511ccaf: The server exits with code 1 when it fails to start, also when the app listens for `uncaughtException` or `unhandledRejection`.
+
 ## 0.1.14
 
 ### Patch Changes
