@@ -64,4 +64,12 @@ function assertFetchable(mod: unknown, id: string): Fetchable {
   return mod as Fetchable;
 }
 
-await startServer();
+try {
+  await startServer();
+} catch (error) {
+  // Rethrown so Node's report and the app's listeners (error trackers, Vike's logger) still get the error.
+  // A listener that swallows it (Vike's does) would otherwise let a failed start exit 0, or stay alive while work is pending.
+  process.exitCode = 1;
+  setTimeout(() => process.exit(1), 5000).unref();
+  throw error;
+}

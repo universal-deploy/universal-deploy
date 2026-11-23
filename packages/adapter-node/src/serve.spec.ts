@@ -16,6 +16,12 @@ const execFileAsync = promisify(execFile);
  */
 const userEntry = `
 const env = globalThis.process.env;
+if (env.UD_TEST_FAIL_START) {
+  // Like Vike's listener: logs the error and leaves the exit code unset.
+  process.on("uncaughtException", (error) => console.error(error));
+  if (env.UD_TEST_FAIL_START === "pending-work") setInterval(() => {}, 1000);
+  throw new Error("refusing to start");
+}
 const atEvaluation = env[["NODE", "ENV"].join("_")] ?? null;
 export default {
   port: 0,
@@ -87,5 +93,21 @@ describe("built node entry", () => {
 
   it("keeps an explicitly provided NODE_ENV", async () => {
     expect(await run("development")).toEqual({ atEvaluation: "development", atReady: "development" });
+  });
+
+  it("exits with code 1 when the user entry throws while it loads", async () => {
+    const env = { ...process.env, UD_TEST_FAIL_START: "1" };
+    await expect(execFileAsync(process.execPath, [outFile], { env, timeout: 4_000 })).rejects.toMatchObject({
+      code: 1,
+      stderr: expect.stringContaining("refusing to start"),
+    });
+  });
+
+  it("exits with code 1 when pending work outlives a failed start", { timeout: 20_000 }, async () => {
+    const env = { ...process.env, UD_TEST_FAIL_START: "pending-work" };
+    await expect(execFileAsync(process.execPath, [outFile], { env, timeout: 15_000 })).rejects.toMatchObject({
+      code: 1,
+      stderr: expect.stringContaining("refusing to start"),
+    });
   });
 });
