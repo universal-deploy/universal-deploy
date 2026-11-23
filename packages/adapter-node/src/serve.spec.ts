@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { createBuilder, type Plugin } from "vite";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { node } from "./vite.js";
 
 const execFileAsync = promisify(execFile);
@@ -20,7 +20,7 @@ if (env.UD_TEST_FAIL_START) {
   // Like Vike's listener: logs the error and leaves the exit code unset.
   process.on("uncaughtException", (error) => console.error(error));
   if (env.UD_TEST_FAIL_START === "pending-work") setInterval(() => {}, 1000);
-  throw new Error("refusing to start");
+  if (env.UD_TEST_FAIL_START !== "on-ready") throw new Error("refusing to start");
 }
 const atEvaluation = env[["NODE", "ENV"].join("_")] ?? null;
 export default {
@@ -28,7 +28,11 @@ export default {
   hostname: "127.0.0.1",
   silent: true,
   fetch: () => new Response("ok"),
-  onReady: () => {
+  onReady: (server) => {
+    if (env.UD_TEST_FAIL_START === "on-ready") {
+      console.log(server.url);
+      throw new Error("refusing to start");
+    }
     console.log(JSON.stringify({ atEvaluation, atReady: env[["NODE", "ENV"].join("_")] ?? null }));
     process.exit(0);
   },
@@ -109,5 +113,21 @@ describe("built node entry", () => {
       code: 1,
       stderr: expect.stringContaining("refusing to start"),
     });
+  });
+
+  it("stops serving when onReady throws", async () => {
+    const env = { ...process.env, UD_TEST_FAIL_START: "on-ready" };
+    const run = execFileAsync(process.execPath, [outFile], { env, timeout: 4_000 });
+    const exitCode = run.catch((error) => error.code);
+    let stdout = "";
+    let stderr = "";
+    run.child.stdout?.on("data", (chunk) => (stdout += chunk));
+    run.child.stderr?.on("data", (chunk) => (stderr += chunk));
+    await vi.waitFor(() => {
+      expect(stdout).toContain("http://127.0.0.1:");
+      expect(stderr).toContain("refusing to start");
+    });
+    await expect(fetch(stdout.trim())).rejects.toMatchObject({ cause: { code: "ECONNREFUSED" } });
+    expect(await exitCode).toBe(1);
   });
 });

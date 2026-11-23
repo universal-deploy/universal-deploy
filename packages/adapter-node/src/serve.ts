@@ -1,8 +1,10 @@
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Fetchable } from "@universal-deploy/store";
-import { type FetchHandler, type ServerMiddleware, serve as serveSrvx } from "srvx";
+import { type FetchHandler, type Server, type ServerMiddleware, serve as serveSrvx } from "srvx";
 import { type ResolvedStaticOptions, resolveStaticOptions } from "./static-options.js";
+
+let server: Server | undefined;
 
 async function startServer() {
   // Must run before the user entry is evaluated: dependencies such as React pick their
@@ -38,7 +40,7 @@ async function startServer() {
   };
   const createStatic = staticMod.staticMiddleware ?? staticMod.serveStatic;
 
-  const server = serveSrvx({
+  server = serveSrvx({
     ...userServerEntry,
     gracefulShutdown: userServerEntry.gracefulShutdown ?? false,
     middleware: [
@@ -70,6 +72,7 @@ try {
   // Rethrown so Node's report and the app's listeners (error trackers, Vike's logger) still get the error.
   // A listener that swallows it (Vike's does) would otherwise let a failed start exit 0, or stay alive while work is pending.
   process.exitCode = 1;
+  server?.close(true);
   setTimeout(() => process.exit(1), 5000).unref();
   throw error;
 }
