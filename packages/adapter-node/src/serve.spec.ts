@@ -17,16 +17,10 @@ const execFileAsync = promisify(execFile);
 const userEntry = `
 const env = globalThis.process.env;
 if (env.UD_TEST_FAIL_START) {
-  // What keeps Node alive after a failed start: an app's silent listener (Vike has one) and an open handle.
-  process.on("uncaughtException", () => {});
-  setInterval(() => {}, 1000);
-  const error = new Error("refusing to start");
-  if (env.UD_TEST_FAIL_START === "unformattable") {
-    error[Symbol.for("nodejs.util.inspect.custom")] = () => {
-      throw new Error("format failed");
-    };
-  }
-  throw error;
+  // Like Vike's listener: logs the error and leaves the exit code unset.
+  process.on("uncaughtException", (error) => console.error(error));
+  if (env.UD_TEST_FAIL_START === "pending-work") setInterval(() => {}, 1000);
+  throw new Error("refusing to start");
 }
 const atEvaluation = env[["NODE", "ENV"].join("_")] ?? null;
 export default {
@@ -109,10 +103,11 @@ describe("built node entry", () => {
     });
   });
 
-  it("exits with code 1 when the startup error can't be formatted", async () => {
-    const env = { ...process.env, UD_TEST_FAIL_START: "unformattable" };
-    await expect(execFileAsync(process.execPath, [outFile], { env, timeout: 4_000 })).rejects.toMatchObject({
+  it("exits with code 1 when pending work outlives a failed start", { timeout: 20_000 }, async () => {
+    const env = { ...process.env, UD_TEST_FAIL_START: "pending-work" };
+    await expect(execFileAsync(process.execPath, [outFile], { env, timeout: 15_000 })).rejects.toMatchObject({
       code: 1,
+      stderr: expect.stringContaining("refusing to start"),
     });
   });
 });
