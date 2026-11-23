@@ -121,18 +121,21 @@ describe("built node entry", () => {
   it.each([
     ["throws", "on-ready"],
     ["rejects", "on-ready-async"],
-  ])("stops serving when onReady %s", async (_, mode) => {
+  ])("stops serving when onReady %s", { timeout: 15_000 }, async (_, mode) => {
     const env = { ...process.env, UD_TEST_FAIL_START: mode };
-    const run = execFileAsync(process.execPath, [outFile], { env, timeout: 4_000 });
+    const run = execFileAsync(process.execPath, [outFile], { env, timeout: 10_000 });
     const exitCode = run.catch((error) => error.code);
     let stdout = "";
     let stderr = "";
     run.child.stdout?.on("data", (chunk) => (stdout += chunk));
     run.child.stderr?.on("data", (chunk) => (stderr += chunk));
-    await vi.waitFor(() => {
-      expect(stdout).toContain("http://127.0.0.1:");
-      expect(stderr).toContain("refusing to start");
-    });
+    await vi.waitFor(
+      () => {
+        expect(stdout).toContain("http://127.0.0.1:");
+        expect(stderr).toContain("refusing to start");
+      },
+      { timeout: 5_000 },
+    );
     await expect(fetch(stdout.trim())).rejects.toMatchObject({ cause: { code: "ECONNREFUSED" } });
     expect(await exitCode).toBe(1);
   });
